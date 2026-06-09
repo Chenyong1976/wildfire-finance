@@ -14,9 +14,9 @@ expenditures, and fiscal balance in western US counties.
 CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022)
 = 2,408 observations. Complete coverage by design — quinquennial census, no sampling restriction.
 **Treatment**: First qualifying MTBS fire (≥1,000 acres) in 2013–2021.
-  - g=2017 cohort: first fire 2013–2016
-  - g=2022 cohort: first fire 2017–2021
-  - g=0 (never treated): never-fired counties (counts updated after re-run)
+  - g=2017 cohort: first fire 2013–2016 (208 counties)
+  - g=2022 cohort: first fire 2017–2021 (85 counties)
+  - g=0 (never treated): 56 counties
 **WFP/WHP**: WFP 2012 primary (predetermined for fires from 2013 onward; finalized before
 2013 fire season). WHP 2014 is robustness only (not predetermined for 2013–2014 fires).
 **Status**: CoG panel, WHP county, MTBS county built. Next: PS-IPW matching, C&S estimation.

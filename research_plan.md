@@ -208,7 +208,9 @@ E61 (total general expenditure), E04 (capital outlays), F01 (long-term debt outs
   MTBS minimum threshold: ≥1,000 acres.
 - Treatment assignment: first qualifying fire per county in 2013–2021. Groups:
   g=2017 for fires 2013–2016; g=2022 for fires 2017–2021; g=0 for never treated.
-- **Cohort counts**: updated after re-run with 2013–2021 treatment window.
+- **Cohort counts** (from re-run with 2013–2021 treatment window):
+  g=2017 (fires 2013–2016): 208 counties; g=2022 (fires 2017–2021): 85 counties;
+  never-treated (g=0): 56 counties. Total: 349 counties.
 - Smoke buffer parquets: `data/processed/fire_perimeters_100km_buffer.parquet`.
 
 ### 5.3 FEMA Disaster Declarations
@@ -362,15 +364,13 @@ All questions resolved 2026-06-09.
       FIPS crosswalk: name-based matching to Census national county file (national_county.txt).
       Montana consolidated city-counties (30023 Deer Lodge, 30093 Silver Bow) excluded —
       not coded as county governments (CoG type=1). WHP 2012 primary; WHP 2014 robustness.
-- [ ] **WHP county intersection** — re-run required. WFP 2012 now primary (RDS-2015-0045,
-      `data/raw/WHP/Data/wfp_2012_continuous/wfp2012_cnt`). Script outputs both `whp_2012`
-      (primary) and `whp_2014` (robustness). Nodata bug fixed: reads nodata from raster metadata
-      (ESRI Grid nodata = -2147483647, not -9999). Health project `01_whp_to_county.py` also
-      fixed. Run `code/01_build/01_whp_to_county.py` to produce updated parquet.
-- [ ] **MTBS county intersection** — re-run required. Treatment window extended to 2013–2021.
-      Pre-fire history variables renamed `pre2013_*` (history 2000–2012). C&S group g=2017
-      now captures fires 2013–2016. Run `code/01_build/02_mtbs_to_county.py` to produce
-      updated parquet and cohort counts.
+- [x] **WHP county intersection** — done 2026-06-09. WFP 2012 primary; WHP 2014 robustness.
+      Both columns output to `data/processed/whp_county.parquet` (349 counties, all positive).
+      Nodata fix applied (reads -2147483647 from raster metadata). Mean whp_2012 = 810, whp_2014 = 513.
+      Python env: `C:\Users\chenyon\AppData\Local\miniconda3\envs\rstools_ssmart`.
+- [x] **MTBS county intersection** — done 2026-06-09. Treatment window 2013–2021.
+      g=2017 (fires 2013–2016): 208 counties. g=2022 (fires 2017–2021): 85 counties.
+      Never-treated (g=0): 56 counties. Smoke-excluded: 5,761 county-years (100 km baseline).
 - [ ] Panel assembly: CPI-U deflation, outlier flagging (code/01_build/07_panel_assemble.py)
 - [ ] PS-IPW matching on WHP 2012 quintile + pre-2012 fiscal baselines + covariates
 - [ ] Balance table (code/02_matching/02_balance_table.R)
