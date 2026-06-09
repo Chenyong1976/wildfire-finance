@@ -73,20 +73,17 @@ debt issuance), leading to faster recovery or larger upfront fiscal adjustment.
 ### 3.1 Design
 
 Treatment is a county's first qualifying wildfire (≥1,000 acres, MTBS-defined) in
-**2015–2021** across 8 western states. The treatment window aligns with both WHP
-predetermination and quinquennial CoG census years: fires 2015–2016 form the g=2017
+**2013–2021** across 8 western states. The treatment window aligns with both WFP
+predetermination and quinquennial CoG census years: fires 2013–2016 form the g=2017
 cohort (first post-treatment census year is 2017); fires 2017–2021 form the g=2022
 cohort.
 
-The **2014 USFS Wildfire Hazard Potential (WHP) raster** is the primary matching
-variable. WHP 2014 is predetermined for fires from 2015 onward (it uses LANDFIRE 2010
-vegetation data and FSim runs that were finalized before the 2015 fire season). Fires
-in 2013–2014 are excluded from the treatment window because they fall within the WHP
-2014 measurement period, creating potential endogeneity in the matching variable.
-
-Note: A WHP 2012 raster does not exist. The 2012 predecessor product was called WFP
-(Wildfire Potential 2012) and used a different methodology; it is not comparable to
-the WHP series. WHP 2014 is the earliest WHP vintage available.
+The **2012 USFS Wildfire Potential (WFP) raster** is the primary matching variable.
+WFP 2012 is predetermined for all fires from 2013 onward — it was finalized before the
+2013 fire season (RDS-2015-0045, ESRI Grid, EPSG:5070, continuous values 0–100+).
+WHP 2014 (the first vintage in the Wildfire Hazard Potential series) is used as a
+robustness check only; it is NOT predetermined for 2013–2014 fires because its FSim
+and LANDFIRE 2010 inputs extended into the 2014 calibration period.
 
 We construct propensity-score inverse-probability weights (PS-IPW) using WHP quintile,
 pre-2012 fire history, pre-2012 fiscal baselines (from the 2012 CoG census), RUCC,
@@ -152,7 +149,7 @@ g=2022 cohort to fires 2017–2019 and treating 2020–2021 fire counties as exc
   2007, 2012, 2017, 2022). Annual Survey years ignored. FY-begin recoded years:
   1991, 1996, 2001, 2006, 2011, 2016, 2021.
 - **Treatment cohorts**:
-  - g=2017: first qualifying fire in 2015–2016 (treated in CoG 2017 census year)
+  - g=2017: first qualifying fire in 2013–2016 (treated in CoG 2017 census year)
   - g=2022: first qualifying fire in 2017–2021 (treated in CoG 2022 census year)
 - **Control counties**: never treated (no qualifying MTBS fire ≥1,000 acres in
   2015–2021); smoke buffer exclusion at 100 km (baseline). **Current sample: 55
@@ -201,17 +198,17 @@ E61 (total general expenditure), E04 (capital outlays), F01 (long-term debt outs
 
 ### 5.2 Fire and Hazard Data
 
+- **USFS WFP 2012**: `wildfire-finance/data/raw/WHP/Data/wfp_2012_continuous/wfp2012_cnt`
+  — primary matching variable. Predetermined for fires from 2013 onward. ESRI Grid
+  format, EPSG:5070 native, nodata = -2147483647, dtype int32. Continuous values.
 - **USFS WHP 2014**: `wildfire-health/data/raw/WHP/Data/whp_2014_continuous/whp2014_cnt`
-  — primary matching variable. Predetermined for fires from 2015 onward. WHP 2012
-  does not exist as a USFS product; the 2012 predecessor (WFP 2012) used a different
-  methodology and is not available. WHP 2014 is the earliest comparable WHP vintage.
+  — robustness matching variable only. Not predetermined for 2013–2014 fires.
 - **MTBS fire perimeters**: shared from `wildfire-health/data/raw/mtbs_perims/`.
-  County intersection built for 8-state sample. Treatment window: 2015–2021.
+  County intersection built for 8-state sample. Treatment window: 2013–2021.
   MTBS minimum threshold: ≥1,000 acres.
-- Treatment assignment: first qualifying fire per county in 2015–2021. Groups:
-  g=2017 for fires 2015–2016; g=2022 for fires 2017–2021; g=0 for never treated.
-- **Cohort counts** (from `data/processed/mtbs_county.parquet`):
-  g=2017: 177 counties; g=2022: 112 counties; never-treated (g=0): 55 counties.
+- Treatment assignment: first qualifying fire per county in 2013–2021. Groups:
+  g=2017 for fires 2013–2016; g=2022 for fires 2017–2021; g=0 for never treated.
+- **Cohort counts**: updated after re-run with 2013–2021 treatment window.
 - Smoke buffer parquets: `data/processed/fire_perimeters_100km_buffer.parquet`.
 
 ### 5.3 FEMA Disaster Declarations
@@ -337,7 +334,7 @@ All questions resolved 2026-06-09.
 | Q7 | Home rule role | **Both**: county charter status in propensity score and regression adjustment (control) AND as heterogeneity variable in a dedicated table. |
 | Q8 | FEMA aid | **Secondary outcome + robustness control**: (a) in the mechanism table as an outcome, (b) as a control in one robustness specification to isolate non-FEMA fiscal effects. |
 | Q9 | Headline estimand | **`fiscal_balance_pc`** (revenues minus expenditures per capita). Positions against Liao & Kousky (2022) — the only existing causal paper (California municipalities only). Leads with the policy-relevant net burden; `rev_proptax_pc` is the primary mechanism column. See `literature_review.md` §3. |
-| Q10 | Treatment window & WHP vintage | **Treatment window 2015–2021**. C&S groups: g=2017 (fires 2015–2016), g=2022 (fires 2017–2021). Primary matching variable: **WHP 2014** (predetermined for fires from 2015 onward; FSim/LANDFIRE inputs finalized before 2015 fire season). WHP 2012 does not exist — the 2012 predecessor WFP uses a different methodology. |
+| Q10 | Treatment window & WFP/WHP vintage | **Treatment window 2013–2021**. C&S groups: g=2017 (fires 2013–2016), g=2022 (fires 2017–2021). Primary matching variable: **WFP 2012** (USFS Wildfire Potential 2012; predetermined for fires from 2013 onward; finalized before 2013 fire season). WHP 2014 is robustness only — not predetermined for 2013–2014 fires. |
 | Q11 | Study period | **1992–2022** (quinquennial census years: 7 years of data). Pre-treatment window: 5 census observations (1992–2012). Post-treatment: up to 2 observations (2017, 2022) depending on cohort. |
 
 ---
@@ -365,15 +362,15 @@ All questions resolved 2026-06-09.
       FIPS crosswalk: name-based matching to Census national county file (national_county.txt).
       Montana consolidated city-counties (30023 Deer Lodge, 30093 Silver Bow) excluded —
       not coded as county governments (CoG type=1). WHP 2012 primary; WHP 2014 robustness.
-- [x] **WHP county intersection** — done. WHP 2012 does not exist; used WHP 2014 (predetermined
-      for fires from 2015 onward). Treatment window adjusted to 2015–2021 accordingly.
-      Output: `data/processed/whp_county.parquet` (349 counties, all positive WHP values).
-      NOTE: nodata=-9999 in `rasterstats` call was wrong for the ESRI Grid format (actual nodata
-      = -2147483647). Fixed in finance project; the same bug may be present in the health
-      project's `01_whp_to_county.py` — verify before re-running health analysis.
-- [x] **MTBS county intersection** — done. Treatment window 2015–2021. WHP 2014 predetermined.
-      C&S groups: g=2017 (fires 2015–2016, 177 counties), g=2022 (fires 2017–2021, 112 counties),
-      g=0 (never treated, 55 counties). Thin control group (16%) flagged for PS-IPW diagnostics.
+- [ ] **WHP county intersection** — re-run required. WFP 2012 now primary (RDS-2015-0045,
+      `data/raw/WHP/Data/wfp_2012_continuous/wfp2012_cnt`). Script outputs both `whp_2012`
+      (primary) and `whp_2014` (robustness). Nodata bug fixed: reads nodata from raster metadata
+      (ESRI Grid nodata = -2147483647, not -9999). Health project `01_whp_to_county.py` also
+      fixed. Run `code/01_build/01_whp_to_county.py` to produce updated parquet.
+- [ ] **MTBS county intersection** — re-run required. Treatment window extended to 2013–2021.
+      Pre-fire history variables renamed `pre2013_*` (history 2000–2012). C&S group g=2017
+      now captures fires 2013–2016. Run `code/01_build/02_mtbs_to_county.py` to produce
+      updated parquet and cohort counts.
 - [ ] Panel assembly: CPI-U deflation, outlier flagging (code/01_build/07_panel_assemble.py)
 - [ ] PS-IPW matching on WHP 2012 quintile + pre-2012 fiscal baselines + covariates
 - [ ] Balance table (code/02_matching/02_balance_table.R)

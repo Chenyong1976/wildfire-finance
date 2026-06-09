@@ -3,20 +3,21 @@ MTBS fire perimeters -> county-year treatment indicators for the wildfire-financ
 
 KEY DESIGN DIFFERENCES FROM WILDFIRE-HEALTH COMPANION:
   - 8-state sample: CA, CO, ID, MT, OR, UT, WA, WY (adds CO, UT; drops AZ, NV, NM)
-  - Treatment window: 2015-2021 (same WHP 2014 predetermination argument as health paper)
+  - Treatment window: 2013-2021. WFP 2012 is predetermined for all fires from 2013
+    onward (finalized before the 2013 fire season). WHP 2014 is NOT predetermined for
+    2013-2014 fires and is used only as a robustness check.
   - TWO C&S cohorts, keyed to quinquennial CoG census years:
-      g=2017: first qualifying fire in 2015-2016 (post-treatment census year = 2017)
+      g=2017: first qualifying fire in 2013-2016 (post-treatment census year = 2017)
       g=2022: first qualifying fire in 2017-2021 (post-treatment census year = 2022)
   - TREAT_YEAR_MAX extended to 2021 (vs 2019 in health paper). COVID affects mortality
     outcomes but is less directly confounding for fiscal outcomes. Robustness: restrict
     g=2022 to fires 2017-2019 only (implemented in 04_robustness.R).
-  - Pre-fire history window: 2000-2014 (same as health paper)
+  - Pre-fire history window: 2000-2012 (predetermined relative to WFP 2012 vintage)
 
-WHP VINTAGE NOTE:
-  WHP 2014 is predetermined for fires from 2015 onward (the FSim and LANDFIRE inputs
-  to WHP 2014 were finalized before the 2015 fire season). WHP 2012 does not exist as
-  a standalone USFS product; the 2012 predecessor WFP used a different methodology.
-  The 2013-2014 fire window is dropped for this reason.
+WFP/WHP VINTAGE NOTE:
+  Primary: WFP 2012 (USFS Wildfire Potential 2012, RDS-2015-0045). Predetermined for
+  all fires from 2013 onward — finalized before the 2013 fire season.
+  Robustness: WHP 2014, which is predetermined only from 2015 onward.
 
 Outputs:
   data/processed/mtbs_county.parquet             (annual county-year panel)
@@ -52,14 +53,13 @@ FIRE_ACRES_MIN  = 1_000
 YEAR_MIN        = 2000
 YEAR_MAX        = 2021
 
-# Treatment window aligned to WHP 2014 predetermination.
-# 2013-2014 fires dropped: fall within WHP 2014 measurement period.
+# Treatment window aligned to WFP 2012 predetermination (predetermined from 2013).
 # 2020-2021 retained for fiscal analysis (COVID robustness in 04_robustness.R).
-TREAT_YEAR_MIN = 2015
+TREAT_YEAR_MIN = 2013
 TREAT_YEAR_MAX = 2021
 
 # C&S cohort boundaries (first post-treatment quinquennial CoG census year)
-COG_COHORT_2017_MAX = 2016   # fires 2015-2016 -> g=2017
+COG_COHORT_2017_MAX = 2016   # fires 2013-2016 -> g=2017
 COG_COHORT_2022_MAX = 2021   # fires 2017-2021 -> g=2022
 
 MTBS_URL  = "https://www.mtbs.gov/direct-download"
@@ -207,7 +207,7 @@ def build_county_year_panel(
     panel["log_acres"]     = panel["log_acres"].fillna(0)
     panel["mtbs_severity"] = panel["mtbs_severity"].fillna(0)
 
-    # Treatment indicator: first qualifying fire in [2015, 2021].
+    # Treatment indicator: first qualifying fire in [2013, 2021].
     panel["treated"] = (
         (panel["fire_in_year"] == 1)
         & (panel["year"] >= TREAT_YEAR_MIN)
@@ -215,7 +215,7 @@ def build_county_year_panel(
     ).astype(int)
 
     # g: C&S group variable — first post-treatment quinquennial CoG census year.
-    # g=2017 for first fire 2015-2016; g=2022 for first fire 2017-2021; 0 if never.
+    # g=2017 for first fire 2013-2016; g=2022 for first fire 2017-2021; 0 if never.
     first_treated = (
         panel[panel["treated"] == 1]
         .groupby("fips")["year"]
@@ -229,22 +229,22 @@ def build_county_year_panel(
     panel = panel.merge(first_treated[["fips", "g"]], on="fips", how="left")
     panel["g"] = panel["g"].fillna(0).astype(int)
 
-    # Pre-2015 fire history (2000-2014): matching covariate.
-    # Consistent with WHP 2014 predetermination period (history through 2014).
+    # Pre-2013 fire history (2000-2012): matching covariate.
+    # Consistent with WFP 2012 predetermination (history through end of 2012).
     pre_fire = (
-        panel[(panel["fire_in_year"] == 1) & (panel["year"] <= 2014)]
+        panel[(panel["fire_in_year"] == 1) & (panel["year"] <= 2012)]
         .groupby("fips")
         .agg(
-            pre2015_fire_count=("fire_in_year", "sum"),
-            pre2015_log_acres=("log_acres", "sum"),
+            pre2013_fire_count=("fire_in_year", "sum"),
+            pre2013_log_acres=("log_acres", "sum"),
         )
         .reset_index()
     )
-    pre_fire["pre2015_fire"] = 1
+    pre_fire["pre2013_fire"] = 1
     panel = panel.merge(pre_fire, on="fips", how="left")
-    panel["pre2015_fire"]       = panel["pre2015_fire"].fillna(0).astype(int)
-    panel["pre2015_fire_count"] = panel["pre2015_fire_count"].fillna(0).astype(int)
-    panel["pre2015_log_acres"]  = panel["pre2015_log_acres"].fillna(0)
+    panel["pre2013_fire"]       = panel["pre2013_fire"].fillna(0).astype(int)
+    panel["pre2013_fire_count"] = panel["pre2013_fire_count"].fillna(0).astype(int)
+    panel["pre2013_log_acres"]  = panel["pre2013_log_acres"].fillna(0)
 
     return panel
 
@@ -299,7 +299,7 @@ def main() -> None:
     n_never  = panel[panel["g"] == 0]["fips"].nunique()
     print(
         f"\nMTBS county panel: {len(panel):,} county-years\n"
-        f"  g=2017 (fires 2015-2016): {n_g2017} counties\n"
+        f"  g=2017 (fires 2013-2016): {n_g2017} counties\n"
         f"  g=2022 (fires 2017-2021): {n_g2022} counties\n"
         f"  Never treated (g=0):      {n_never} counties\n"
         f"  Smoke-excluded (any year): {panel['smoke_buffer_excl'].sum():,} county-years"
