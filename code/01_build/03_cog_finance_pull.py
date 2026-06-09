@@ -6,7 +6,7 @@ type code 1) in the 8-state western sample, 2000-2021.
 
 FISCAL YEAR ALIGNMENT RULE:
   Assign CoG fiscal data to the calendar year in which the fiscal year BEGINS.
-  FY July 2015 – June 2016 → year 2015.
+  FY July 2015 – June 2016 -> year 2015.
   All 8 western states use June 30 fiscal year end for county governments
   (see FY_END_MONTHS below; verify from CoG FYMONTH field in raw data).
 
@@ -14,14 +14,32 @@ FISCAL YEAR ALIGNMENT RULE:
   recode to FY-begin convention by subtracting 1 when FY end month != Dec.
 
 COVERAGE RULE (per research_plan.md):
-  Retain counties with Annual Survey data in ≥ 85% of sample years
-  (≥ 18 of 21). Robustness check at ≥ 70% (≥ 15 of 21).
-  Flag if missingness clusters in post-fire years (2015-2021) — if so,
-  do NOT impute; exclude the county and document.
+  Retain counties with Annual Survey data in >= 85% of sample years
+  (>= 18 of 21). Robustness check at >= 70% (>= 15 of 21).
+  Flag if missingness clusters in post-fire years (2015-2021); if so,
+  do NOT impute -- exclude the county and document.
 
-DATA SOURCE:
-  Census Bureau bulk ZIP files, individual unit files.
-  URL: https://www2.census.gov/programs-surveys/gov-finances/tables/{YEAR}/
+DATA SOURCE — THREE ERAS:
+
+  2000-2012:  Historical archive (wide format, one row per government per year)
+              https://www2.census.gov/programs-surveys/gov-finances/datasets/
+              historical/_IndFin_1967-2012.zip (~250 MB, downloaded once)
+              Contains IndFin00a/b/c.Txt through IndFin12a/b/c.Txt.
+              Key columns: Year4, Type Code, FIPS Code-State, County,
+              Property Tax, General Revenue, General Expenditure, etc.
+
+  2013-2016:  *** NOT AVAILABLE as public individual unit files. ***
+              Census Bureau directory is empty for these years.
+              Options: (1) Census API with key (api.census.gov/data/key_signup.html),
+              (2) ICPSR request, (3) treat as structural gap.
+              This creates a 4-year gap in the pre-treatment panel.
+
+  2017-2021:  Fixed-width long format (one row per item per government)
+              https://www2.census.gov/programs-surveys/gov-finances/tables/
+              {YEAR}/{YEAR}_Individual_Unit_File.zip
+              Record layout: [0:12] gov ID, [12:15] item code,
+              [15:27] amount ($000s, right-justified), [27:31] year, [31] flag
+              Gov ID: [0:2]=state FIPS, [2]=type (1=county), [3:6]=county FIPS
 
 ITEM CODES (CoG Annual Survey):
   T01  Property tax revenue
@@ -43,7 +61,6 @@ import re
 import time
 import zipfile
 from pathlib import Path
-from typing import Iterator
 
 import pandas as pd
 import requests
@@ -57,14 +74,65 @@ RAW.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 
 WEST_STATES = {"06", "08", "16", "30", "41", "49", "53", "56"}  # CA CO ID MT OR UT WA WY
-
 SAMPLE_YEARS = list(range(2000, 2022))  # 2000-2021 inclusive
+COUNTY_TYPE = "1"  # CoG government type code for county governments
 
-# CoG government type code for county governments
-COUNTY_TYPE_CODE = "1"
+# Fiscal year end months for county governments in 8 western states.
+# Most use June 30 (month=6); Idaho counties typically use September 30 (month=9).
+# Verify for individual counties from CoG FYENDMO field when available.
+FY_END_MONTHS: dict[str, int] = {
+    "06": 6,  # CA
+    "08": 6,  # CO (some home rule counties may vary)
+    "16": 9,  # ID (county governments follow state FY ending Sep 30)
+    "30": 6,  # MT
+    "41": 6,  # OR
+    "49": 6,  # UT
+    "53": 6,  # WA (most counties; verify individual counties)
+    "56": 6,  # WY
+}
 
-# Fiscal variables to extract (item code → output column name)
-ITEMS = {
+# ---------------------------------------------------------------------------
+# URL PATTERNS
+# ---------------------------------------------------------------------------
+COG_HIST_URL = (
+    "https://www2.census.gov/programs-surveys/gov-finances/datasets/historical/"
+    "_IndFin_1967-2012.zip"
+)
+HIST_YEARS = set(range(2000, 2013))   # covered by historical archive
+
+NEW_FORMAT_URLS: dict[int, str] = {
+    yr: (
+        f"https://www2.census.gov/programs-surveys/gov-finances/tables/{yr}/"
+        f"{yr}_Individual_Unit_File.zip"
+    )
+    for yr in range(2017, 2022)
+}
+
+GAP_YEARS = set(range(2013, 2017))    # no public individual unit files available
+
+# ---------------------------------------------------------------------------
+# Historical archive column -> output variable mapping
+# ---------------------------------------------------------------------------
+# These are the descriptive column names used in IndFinYYa/b/c.Txt (wide format).
+HIST_COL_MAP = {
+    "Property Tax":          "rev_proptax",
+    "Total Taxes":           "rev_tax_total",
+    "Total Fed IG Revenue":  "rev_igt_federal",
+    "Total State IG Revenue":"rev_igt_state",
+    "Total IG Revenue":      "rev_intergovt",
+    "Gen Rev-Own Sources":   "rev_own_sources",
+    "General Revenue":       "rev_total",
+    "General Expenditure":   "exp_total",
+    "Total Capital Outlays": "exp_capital",
+    # Long-term debt: try multiple possible column names across vintages
+    "Long-Term Debt Out":    "debt_lt",
+    "LT Debt Outstanding":   "debt_lt",
+    "Total Long-Term Debt":  "debt_lt",
+    "Long Term Debt":        "debt_lt",
+}
+
+# New-format item codes (CoG fixed-width long format)
+NEW_ITEMS = {
     "T01": "rev_proptax",
     "T09": "rev_tax_total",
     "B01": "rev_igt_federal",
@@ -77,343 +145,338 @@ ITEMS = {
     "F01": "debt_lt",
 }
 
-# Fiscal year end months for county governments in 8 western states.
-# All 8 states use June 30 (month = 6) for county FY end.
-# Source: CoG documentation + state statutes.
-# Verify against FYMONTH field in raw CoG data — if a county reports a
-# different FY end month, apply the recoding individually.
-FY_END_MONTHS: dict[str, int] = {
-    "06": 6,  # CA — FY ends June 30
-    "08": 6,  # CO — FY ends June 30 (some home rule counties may vary; verify)
-    "16": 9,  # ID — FY ends September 30 (state FY; most county govts follow)
-    "30": 6,  # MT — FY ends June 30
-    "41": 6,  # OR — FY ends June 30
-    "49": 6,  # UT — FY ends June 30
-    "53": 6,  # WA — FY ends December 31 for some; June 30 for most counties
-    "56": 6,  # WY — FY ends June 30
-}
-# NOTE: WA state FY ends June 30; most county governments follow.
-# Verify for individual WA counties. ID state FY ends June 30; county FYs
-# may vary — flag any county with FYMONTH ≠ 9.
+# ---------------------------------------------------------------------------
+# Download helpers
+# ---------------------------------------------------------------------------
 
-# Known URL patterns for CoG Annual Survey individual unit files.
-# Census Bureau occasionally changes filenames; update if download fails.
-# Format: https://www2.census.gov/programs-surveys/gov-finances/tables/{YEAR}/{filename}
-COG_URL_PATTERNS = {
-    # 2016-2021: consistent naming
-    2021: "2021_Individual_Unit_File.zip",
-    2020: "2020_Individual_Unit_File.zip",
-    2019: "2019_Individual_Unit_File.zip",
-    2018: "2018_Individual_Unit_File.zip",
-    2017: "2017_Individual_Unit_File.zip",
-    2016: "2016_Individual_Unit_File.zip",
-    # 2012-2015: slightly different naming
-    2015: "2015_Individual_Unit_File.zip",
-    2014: "2014_Individual_Unit_File.zip",
-    2013: "2013_Individual_Unit_File.zip",
-    2012: "2012_Individual_Unit_File.zip",
-    # Pre-2012: older format; filenames vary significantly
-    # These require manual download from Census Bureau; see note below.
-    2011: None,
-    2010: None,
-    2009: None,
-    2008: None,
-    2007: None,  # Quinquennial Census year — use Census file instead
-    2006: None,
-    2005: None,
-    2004: None,
-    2003: None,
-    2002: None,  # Quinquennial Census year
-    2001: None,
-    2000: None,
-}
-
-COG_BASE_URL = "https://www2.census.gov/programs-surveys/gov-finances/tables"
-
-
-def _download_year(year: int, dest: Path) -> Path | None:
-    """Download CoG Annual Survey zip for one year. Returns path or None if not available."""
-    filename = COG_URL_PATTERNS.get(year)
-    if filename is None:
-        print(f"  [SKIP] {year}: no known URL pattern — download manually from Census Bureau")
-        return None
-    url = f"{COG_BASE_URL}/{year}/{filename}"
-    local_zip = dest / f"cog_{year}.zip"
-    if local_zip.exists():
-        return local_zip
-    print(f"  Downloading {year}... ", end="", flush=True)
+def _fetch(url: str, dest: Path, label: str) -> Path | None:
+    if dest.exists():
+        return dest
+    print(f"  Downloading {label}... ", end="", flush=True)
     try:
-        r = requests.get(url, timeout=120)
+        r = requests.get(url, timeout=600, stream=True)
         r.raise_for_status()
-        local_zip.write_bytes(r.content)
-        print(f"OK ({len(r.content) // 1024:,} KB)")
-        time.sleep(0.5)  # be polite to Census servers
-        return local_zip
-    except requests.HTTPError as e:
+        with dest.open("wb") as fh:
+            for chunk in r.iter_content(chunk_size=1 << 20):
+                fh.write(chunk)
+        print(f"OK ({dest.stat().st_size // 1024:,} KB)")
+        time.sleep(0.5)
+        return dest
+    except Exception as e:
         print(f"FAILED ({e})")
+        if dest.exists():
+            dest.unlink()
         return None
 
+# ---------------------------------------------------------------------------
+# Historical archive parser (2000-2012, wide format)
+# ---------------------------------------------------------------------------
 
-def _parse_zip(zip_path: Path, year: int) -> pd.DataFrame | None:
-    """Parse one CoG zip file and return a filtered DataFrame for western county governments."""
+def parse_historical_year(archive_zip: Path, year: int) -> pd.DataFrame | None:
+    """
+    Extract one year from the _IndFin_1967-2012 archive.
+    Files inside are named IndFinYYa/b/c.Txt (YY = 2-digit year, a/b/c = parts).
+    Each file is a wide CSV: one row per government, columns are fiscal item names.
+    """
+    yy = str(year)[2:].zfill(2)  # e.g. 2007 -> "07"
+    try:
+        with zipfile.ZipFile(archive_zip) as zf:
+            parts = [n for n in zf.namelist() if re.match(rf"IndFin{yy}[a-cA-C]\.Txt", n, re.IGNORECASE)]
+            if not parts:
+                print(f"  [WARN] {year}: no IndFin{yy}*.Txt files in historical archive")
+                return None
+            frames = []
+            for part in parts:
+                raw = zf.read(part)
+                df = pd.read_csv(io.BytesIO(raw), dtype=str, low_memory=False, encoding="latin-1")
+                frames.append(df)
+            df = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+    except Exception as e:
+        print(f"  [WARN] {year}: historical archive read error — {e}")
+        return None
+
+    # Normalise column names
+    df.columns = [c.strip() for c in df.columns]
+
+    # Filter to county governments in western states
+    type_col = next((c for c in df.columns if c in ("Type Code", "TypeCode", "TYPECODE")), None)
+    state_col = next((c for c in df.columns if c in ("FIPS Code-State", "State Code", "STATE")), None)
+    county_col = next((c for c in df.columns if c in ("County", "COUNTY")), None)
+    yr_col = next((c for c in df.columns if c in ("Year4", "YEAR4", "SurveyYr")), None)
+
+    if type_col is None or state_col is None:
+        print(f"  [WARN] {year}: cannot locate type/state columns in historical archive")
+        return None
+
+    df[state_col] = df[state_col].str.strip().str.zfill(2)
+    df[type_col] = df[type_col].str.strip()
+    mask = (df[type_col] == COUNTY_TYPE) & (df[state_col].isin(WEST_STATES))
+    df = df[mask].copy()
+
+    if df.empty:
+        print(f"  [WARN] {year}: no western county governments in historical archive for year {year}")
+        return None
+
+    # Build 5-digit FIPS
+    if county_col:
+        df["fips"] = df[state_col].str.zfill(2) + df[county_col].str.strip().str.zfill(3)
+    else:
+        print(f"  [WARN] {year}: no county FIPS column; skipping")
+        return None
+
+    # Map descriptive columns to output variables
+    out: dict[str, pd.Series] = {"fips": df["fips"], "year_cog": pd.Series([year] * len(df), index=df.index)}
+    debt_assigned = False
+    for hist_col, out_col in HIST_COL_MAP.items():
+        if hist_col in df.columns:
+            if out_col == "debt_lt" and debt_assigned:
+                continue  # use first matching debt column
+            out[out_col] = pd.to_numeric(df[hist_col].str.strip(), errors="coerce") * 1000
+            if out_col == "debt_lt":
+                debt_assigned = True
+
+    result = pd.DataFrame(out)
+    return result
+
+# ---------------------------------------------------------------------------
+# New format parser (2017-2021, fixed-width long format)
+# ---------------------------------------------------------------------------
+
+# Fixed-width record layout (0-indexed, each record is 32 chars):
+#   [0:12]  Government ID: [0:2]=state FIPS, [2]=type, [3:6]=county FIPS, [6:12]=local ID
+#   [12:15] Item code (e.g. T01, A15, E61)
+#   [15:27] Amount in $thousands (right-justified with spaces)
+#   [27:31] Survey year (4 digits)
+#   [31]    Revision flag (R=revised, P=preliminary, etc.)
+FW_COLSPECS = [(0, 12), (12, 15), (15, 27), (27, 31), (31, 32)]
+FW_NAMES    = ["govid", "item", "amount_str", "year_str", "flag"]
+
+
+def parse_new_format_year(zip_path: Path, year: int) -> pd.DataFrame | None:
+    """
+    Parse a 2017-2021 CoG Individual Unit File (fixed-width long format).
+    Filters to county governments in WEST_STATES, pivots items to wide format.
+    """
     try:
         with zipfile.ZipFile(zip_path) as zf:
-            csv_names = [n for n in zf.namelist() if n.lower().endswith((".csv", ".txt"))]
-            if not csv_names:
-                print(f"  [WARN] {year}: no CSV found in zip; skipping")
-                return None
-
-            # Try to find the main individual unit file (not the header/codebook)
-            data_files = [n for n in csv_names if "indunit" in n.lower() or "individual" in n.lower() or "FinEst" in n]
+            data_files = [
+                n for n in zf.namelist()
+                if "FinEstDAT" in n and n.endswith(".txt")
+            ]
             if not data_files:
-                data_files = csv_names  # fall back to any CSV
-
-            dfs = []
-            for fname in data_files:
-                raw = zf.read(fname)
-                try:
-                    df = pd.read_csv(io.BytesIO(raw), dtype=str, low_memory=False,
-                                     encoding="latin-1")
-                except Exception:
-                    df = pd.read_csv(io.BytesIO(raw), dtype=str, low_memory=False,
-                                     encoding="utf-8", sep="|")
-                dfs.append(df)
-            if not dfs:
+                # Fall back: any .txt not a PID or aggregate file
+                data_files = [
+                    n for n in zf.namelist()
+                    if n.lower().endswith(".txt")
+                    and not any(k in n for k in ("PID", "statetype", "Aggregate", "Documentation"))
+                ]
+            if not data_files:
+                print(f"  [WARN] {year}: no data file found in zip")
                 return None
-            df = pd.concat(dfs, ignore_index=True) if len(dfs) > 1 else dfs[0]
+            raw = zf.read(data_files[0])
     except Exception as e:
-        print(f"  [WARN] {year}: zip parse error — {e}")
+        print(f"  [WARN] {year}: zip error — {e}")
         return None
 
-    # Normalise column names to lowercase
-    df.columns = df.columns.str.lower().str.strip()
+    try:
+        df = pd.read_fwf(
+            io.BytesIO(raw),
+            colspecs=FW_COLSPECS,
+            names=FW_NAMES,
+            dtype=str,
+            encoding="latin-1",
+            header=None,
+        )
+    except Exception as e:
+        print(f"  [WARN] {year}: fixed-width parse error — {e}")
+        return None
 
+    # Filter to county governments in western states
+    df = df.dropna(subset=["govid"])
+    df["govid"] = df["govid"].str.strip()
+    df = df[df["govid"].str.len() == 12].copy()
+
+    df["state"] = df["govid"].str[0:2]
+    df["gtype"] = df["govid"].str[2]
+    df["county3"] = df["govid"].str[3:6]
+    df["fips"] = df["state"] + df["county3"]
+
+    mask = (df["state"].isin(WEST_STATES)) & (df["gtype"] == COUNTY_TYPE)
+    df = df[mask].copy()
+    if df.empty:
+        print(f"  [WARN] {year}: no county governments in western states after filter")
+        return None
+
+    # Keep only fiscal items we need
+    df["item"] = df["item"].str.strip().str.upper()
+    df = df[df["item"].isin(NEW_ITEMS)].copy()
+
+    df["amount"] = pd.to_numeric(df["amount_str"].str.strip(), errors="coerce") * 1000
+
+    # Pivot to wide: one row per county, one column per item
+    wide = df.pivot_table(index="fips", columns="item", values="amount", aggfunc="first")
+    wide.columns.name = None
+    wide = wide.reset_index()
+
+    # Rename item codes to output variable names
+    wide = wide.rename(columns=NEW_ITEMS)
+    wide["year_cog"] = year
+    return wide
+
+# ---------------------------------------------------------------------------
+# Fiscal year recoding and derived outcomes
+# ---------------------------------------------------------------------------
+
+def recode_fy(df: pd.DataFrame) -> pd.DataFrame:
+    """Recode CoG FY-end year to FY-begin year. Adds 'year' column."""
+    df = df.copy()
+    df["fips"] = df["fips"].astype(str).str.strip()
+    df["state"] = df["fips"].str[0:2]
+    df["fy_end_month"] = df["state"].map(FY_END_MONTHS).fillna(6).astype(int)
+    df["year"] = df.apply(
+        lambda r: int(r["year_cog"]) - 1 if r["fy_end_month"] < 12 else int(r["year_cog"]),
+        axis=1
+    )
     return df
 
 
-def _extract_county_items(df: pd.DataFrame, year: int) -> pd.DataFrame | None:
-    """
-    Extract fiscal items for county governments in WEST_STATES.
+def derive_outcomes(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    if "exp_total" in df.columns and "exp_capital" in df.columns:
+        df["exp_current"] = df["exp_total"] - df["exp_capital"]
+    if "rev_total" in df.columns and "exp_total" in df.columns:
+        df["fiscal_balance"] = df["rev_total"] - df["exp_total"]
+    return df
 
-    CoG data comes in two shapes:
-      LONG: one row per (government, item); columns include 'item' and 'amount'
-      WIDE: one row per government; one column per item code
+# ---------------------------------------------------------------------------
+# Coverage audit
+# ---------------------------------------------------------------------------
 
-    We detect the shape from the column names and normalize to wide.
-    """
-    # Detect shape
-    is_long = any(c in df.columns for c in ("item", "finitem", "itemcode"))
-    is_wide = any(c in df.columns for c in list(ITEMS.keys()) + [k.lower() for k in ITEMS])
-
-    # Identify key column names (Census uses different names across years)
-    col_map = _map_columns(df.columns.tolist())
-    if col_map is None:
-        print(f"  [WARN] {year}: could not identify required columns; skipping")
-        return None
-
-    gov_type_col = col_map["govtype"]
-    state_col = col_map["state"]
-    county_col = col_map.get("county")
-    govid_col = col_map.get("govid")
-
-    # Filter to county governments in western states
-    df[gov_type_col] = df[gov_type_col].str.strip()
-    df[state_col] = df[state_col].str.strip().str.zfill(2)
-    mask = (df[gov_type_col] == COUNTY_TYPE_CODE) & (df[state_col].isin(WEST_STATES))
-    df_counties = df[mask].copy()
-
-    if df_counties.empty:
-        print(f"  [WARN] {year}: no county governments found after filter; check type code column")
-        return None
-
-    if is_long and not is_wide:
-        item_col = next(c for c in df.columns if c in ("item", "finitem", "itemcode"))
-        amount_col = next(c for c in df.columns if c in ("amount", "value", "dollars"))
-        id_col = govid_col or state_col
-
-        df_counties[item_col] = df_counties[item_col].str.strip().str.upper()
-        df_counties = df_counties[df_counties[item_col].isin(ITEMS.keys())]
-
-        df_wide = df_counties.pivot_table(
-            index=id_col, columns=item_col, values=amount_col, aggfunc="first"
-        ).reset_index()
-        df_wide.columns.name = None
-        df_counties = df_counties.drop_duplicates(subset=[id_col]).drop(columns=[item_col, amount_col])
-        df_counties = df_counties.merge(df_wide, on=id_col, how="left")
-
-    # Build FIPS
-    if county_col and state_col in df_counties.columns:
-        df_counties["fips"] = (
-            df_counties[state_col].str.zfill(2) + df_counties[county_col].str.zfill(3)
-        )
-    elif govid_col:
-        df_counties["fips"] = df_counties[govid_col].str[:5]
-    else:
-        print(f"  [WARN] {year}: cannot construct FIPS; skipping")
-        return None
-
-    # Fiscal year adjustment: recode CoG year (FY-end year) → FY-begin year
-    df_counties["year_cog"] = year
-    df_counties["fy_end_month"] = df_counties[state_col].map(FY_END_MONTHS).fillna(6).astype(int)
-    # If FY ends before December, the FY started in the previous calendar year
-    df_counties["year"] = df_counties.apply(
-        lambda r: r["year_cog"] - 1 if r["fy_end_month"] < 12 else r["year_cog"], axis=1
-    )
-
-    # Extract fiscal items
-    out_cols = {"fips": df_counties["fips"], "year": df_counties["year"],
-                "fy_end_month": df_counties["fy_end_month"]}
-    for item_code, col_name in ITEMS.items():
-        # item columns may be upper or lower case
-        candidates = [item_code, item_code.lower()]
-        found = next((c for c in candidates if c in df_counties.columns), None)
-        out_cols[col_name] = pd.to_numeric(df_counties[found], errors="coerce") * 1000 if found else pd.NA
-
-    result = pd.DataFrame(out_cols)
-    result = result[result["fips"].notna() & (result["fips"].str.len() == 5)]
-    return result
-
-
-def _map_columns(cols: list[str]) -> dict | None:
-    """Map known CoG column name variants to canonical names."""
-    lower = [c.lower() for c in cols]
-    mapping: dict[str, str] = {}
-
-    for alias, canonical in [
-        (["govtype", "type", "typecode", "ftype", "govtype4"], "govtype"),
-        (["state", "stcode", "statefp", "state_code", "fips_state"], "state"),
-        (["county", "cntyfp", "county_code", "fips_county"], "county"),
-        (["idcensus", "govid", "id14", "census_id", "id"], "govid"),
-    ]:
-        match = next((cols[lower.index(a)] for a in alias if a in lower), None)
-        if match:
-            mapping[canonical] = match
-
-    if "govtype" not in mapping or "state" not in mapping:
-        return None
-    return mapping
-
-
-def coverage_audit(panel: pd.DataFrame, n_years: int = 21,
-                   min_pct_primary: float = 0.85,
-                   min_pct_robust: float = 0.70) -> pd.DataFrame:
-    """
-    Compute coverage rates and flag counties below the threshold.
-    Also checks whether missingness clusters in post-fire years (2015-2021).
-    """
+def coverage_audit(panel: pd.DataFrame,
+                   n_years: int = 21,
+                   min_primary: float = 0.85,
+                   min_robust: float = 0.70) -> pd.DataFrame:
     counts = panel.groupby("fips")["year"].nunique().rename("n_years_obs")
-    coverage = counts.reset_index()
-    coverage["coverage_pct"] = coverage["n_years_obs"] / n_years
-    coverage["pass_primary"] = coverage["coverage_pct"] >= min_pct_primary
-    coverage["pass_robust"] = coverage["coverage_pct"] >= min_pct_robust
+    cov = counts.reset_index()
+    cov["coverage_pct"] = cov["n_years_obs"] / n_years
+    cov["pass_primary"] = cov["coverage_pct"] >= min_primary
+    cov["pass_robust"] = cov["coverage_pct"] >= min_robust
 
-    # Check if missing years cluster in post-fire window (2015-2021)
-    all_years = set(range(2000, 2021))
-    post_fire_years = set(range(2015, 2022))
-    records = []
+    all_yrs = set(range(2000, 2021))
+    post_fire = set(range(2015, 2022))
+    rows = []
     for fips, grp in panel.groupby("fips"):
-        observed = set(grp["year"])
-        missing_all = all_years - observed
-        missing_post = missing_post_fire = missing_all & post_fire_years
-        records.append({
+        obs = set(grp["year"])
+        miss = all_yrs - obs
+        miss_post = miss & post_fire
+        rows.append({
             "fips": fips,
-            "n_missing_total": len(missing_all),
-            "n_missing_post_fire": len(missing_post_fire),
-            "post_fire_missing_share": (
-                len(missing_post_fire) / len(missing_all) if missing_all else 0.0
-            ),
+            "n_missing_total": len(miss),
+            "n_missing_post_fire": len(miss_post),
+            "post_fire_share": len(miss_post) / len(miss) if miss else 0.0,
         })
-    missing_df = pd.DataFrame(records)
-    coverage = coverage.merge(missing_df, on="fips", how="left")
+    miss_df = pd.DataFrame(rows)
+    cov = cov.merge(miss_df, on="fips", how="left")
+    cov["attrition_risk"] = (cov["post_fire_share"] > 0.5) & (cov["n_missing_total"] > 0)
 
-    # Flag counties where >50% of missing observations are in the post-fire period
-    coverage["attrition_risk"] = (coverage["post_fire_missing_share"] > 0.5) & (coverage["n_missing_total"] > 0)
+    print(f"\nCoverage audit ({n_years}-year panel):")
+    print(f"  Total counties in data:          {len(cov):,}")
+    print(f"  Pass >=85% primary threshold:    {cov['pass_primary'].sum():,}")
+    print(f"  Pass >=70% robustness threshold: {cov['pass_robust'].sum():,}")
+    n_risk = cov["attrition_risk"].sum()
+    print(f"  Attrition risk (>50% missing in post-fire window): {n_risk}")
+    if n_risk > 0:
+        print("  WARNING: these counties should NOT be imputed — exclude and document:")
+        print(cov[cov["attrition_risk"]][["fips", "n_years_obs", "n_missing_post_fire"]].to_string(index=False))
 
-    n_primary = coverage["pass_primary"].sum()
-    n_robust = coverage["pass_robust"].sum()
-    n_attrition = coverage["attrition_risk"].sum()
-    print(f"\nCoverage audit:")
-    print(f"  Total counties: {len(coverage)}")
-    print(f"  Pass ≥{min_pct_primary:.0%} (primary): {n_primary}")
-    print(f"  Pass ≥{min_pct_robust:.0%} (robustness): {n_robust}")
-    print(f"  Attrition risk (>50% missing in post-fire window): {n_attrition}")
-    if n_attrition > 0:
-        print("  WARNING: Attrition risk counties should NOT be imputed — exclude and document.")
-        at_risk = coverage[coverage["attrition_risk"]][["fips", "n_years_obs", "n_missing_post_fire"]]
-        print(at_risk.to_string(index=False))
+    return cov
 
-    return coverage
-
-
-def derive_outcomes(panel: pd.DataFrame) -> pd.DataFrame:
-    """Compute derived fiscal outcomes from raw item amounts."""
-    panel = panel.copy()
-    # Current operations = total expenditure minus capital outlays
-    panel["exp_current"] = panel["exp_total"] - panel["exp_capital"]
-    # Fiscal balance = total revenues minus total expenditures
-    panel["fiscal_balance"] = panel["rev_total"] - panel["exp_total"]
-    return panel
-
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main() -> None:
     print("=== Census of Governments Annual Survey Pull ===")
-    print(f"Sample years: {SAMPLE_YEARS[0]}–{SAMPLE_YEARS[-1]}")
+    print(f"Sample years: {SAMPLE_YEARS[0]}-{SAMPLE_YEARS[-1]}")
     print(f"States: {sorted(WEST_STATES)}")
+    print(f"\nNOTE: Individual unit files for 2013-2016 are NOT publicly available.")
+    print(f"  Coverage will be based on: 2000-2012 (historical archive) + 2017-2021.")
+    print(f"  2013-2016 gap = 4 missing years in the pre-treatment window.")
+    print(f"  To fill this gap, register for Census API key at:")
+    print(f"  https://api.census.gov/data/key_signup.html")
 
     frames: list[pd.DataFrame] = []
-    for year in tqdm(SAMPLE_YEARS, desc="Years"):
-        zip_path = _download_year(year, RAW)
+
+    # ---- HISTORICAL ARCHIVE (2000-2012) ----
+    hist_zip = _fetch(COG_HIST_URL, RAW / "cog_hist_1967_2012.zip", "1967-2012 archive")
+    if hist_zip:
+        for year in tqdm(sorted(HIST_YEARS), desc="Historical 2000-2012"):
+            df = parse_historical_year(hist_zip, year)
+            if df is not None and not df.empty:
+                frames.append(df)
+    else:
+        print("ERROR: Could not download historical archive.")
+
+    # ---- GAP YEARS (2013-2016): skip with notice ----
+    print(f"\n[SKIP] 2013-2016: no public individual unit files. Proceeding with gap.")
+
+    # ---- NEW FORMAT (2017-2021) ----
+    for year, url in tqdm(sorted(NEW_FORMAT_URLS.items()), desc="New format 2017-2021"):
+        zip_path = _fetch(url, RAW / f"cog_{year}.zip", str(year))
         if zip_path is None:
             continue
-        df_raw = _parse_zip(zip_path, year)
-        if df_raw is None:
-            continue
-        df_year = _extract_county_items(df_raw, year)
-        if df_year is not None and not df_year.empty:
-            frames.append(df_year)
+        df = parse_new_format_year(zip_path, year)
+        if df is not None and not df.empty:
+            frames.append(df)
 
     if not frames:
-        print("ERROR: No data parsed. Check download URLs and CoG data format.")
+        print("\nERROR: No data parsed. Check downloads and parsers.")
         return
 
+    # Combine and recode
     panel = pd.concat(frames, ignore_index=True)
-    panel = panel.sort_values(["fips", "year"]).reset_index(drop=True)
+    panel = recode_fy(panel)
     panel = derive_outcomes(panel)
+    panel = panel.sort_values(["fips", "year"]).reset_index(drop=True)
+
+    # Drop rows with invalid FIPS
+    panel = panel[panel["fips"].str.len() == 5].copy()
 
     print(f"\nRaw panel: {len(panel):,} county-year observations")
-    print(f"  Unique counties: {panel['fips'].nunique()}")
-    print(f"  Year range: {panel['year'].min()}–{panel['year'].max()}")
+    print(f"  Unique counties: {panel['fips'].nunique():,}")
+    print(f"  Year range: {panel['year'].min()}-{panel['year'].max()}")
+
+    yrs_available = sorted(int(y) for y in panel["year"].unique())
+    yrs_missing = [y for y in range(2000, 2021) if y not in yrs_available]
+    print(f"  Years present: {yrs_available}")
+    if yrs_missing:
+        print(f"  Years MISSING: {yrs_missing}")
 
     # Coverage audit
-    coverage = coverage_audit(panel)
-    coverage.to_csv(RAW / "cog_coverage_audit.csv", index=False)
-    print(f"\nCoverage audit written → {RAW / 'cog_coverage_audit.csv'}")
+    cov = coverage_audit(panel)
+    cov.to_csv(RAW / "cog_coverage_audit.csv", index=False)
+    print(f"\nCoverage audit written -> {RAW / 'cog_coverage_audit.csv'}")
 
-    # Apply primary coverage filter (≥ 85%)
-    valid_fips = coverage[coverage["pass_primary"]]["fips"]
-    panel_filtered = panel[panel["fips"].isin(valid_fips)].copy()
-    print(f"\nFiltered panel (≥85% coverage): {len(panel_filtered):,} obs, {panel_filtered['fips'].nunique()} counties")
+    # Apply primary filter
+    valid = set(cov.loc[cov["pass_primary"], "fips"])
+    pf = panel[panel["fips"].isin(valid)].copy()
+    print(f"\nFiltered (>=85%): {len(pf):,} obs, {pf['fips'].nunique():,} counties")
 
-    # Flag outliers: per-county values > 3× state-year median or < 0
-    revenue_cols = [c for c in panel_filtered.columns if c.startswith("rev_")]
-    for col in revenue_cols:
-        state_yr_median = panel_filtered.groupby(["fips", "year"])[col].transform(
-            lambda x: x.median()
-        )
-        panel_filtered[f"flag_{col}"] = (
-            (panel_filtered[col] < 0) |
-            (panel_filtered[col] > 3 * state_yr_median)
-        ).fillna(False)
+    # Flag outlier revenue values
+    for col in [c for c in pf.columns if c.startswith("rev_")]:
+        if pf[col].notna().any():
+            state_yr_med = pf.groupby(["state", "year"])[col].transform("median")
+            pf[f"flag_{col}"] = (pf[col] < 0) | (pf[col] > 3 * state_yr_med)
 
-    # Write outputs
-    panel_filtered.to_parquet(OUT / "cog_panel_raw.parquet", index=False)
-    print(f"\nPanel written → {OUT / 'cog_panel_raw.parquet'}")
-    print("Next step: merge ACS population for per-capita deflation in 07_panel_assemble.py")
+    pf.to_parquet(OUT / "cog_panel_raw.parquet", index=False)
+    print(f"Panel written -> {OUT / 'cog_panel_raw.parquet'}")
 
-    # Print FY end month distribution as sanity check
-    fy_dist = panel_filtered.groupby("fy_end_month").size()
-    print(f"\nFiscal year end month distribution:\n{fy_dist.to_string()}")
-    print("  Expected: most observations at month 6 (June 30). Any month ≠ 6 should be verified.")
+    # FY end month sanity check
+    fy_dist = pf.groupby("fy_end_month").size()
+    print(f"\nFY end month distribution:\n{fy_dist.to_string()}")
+    print("  (Expected: most at month 6=June. Any deviation should be verified.)")
+
+    print("\nNext: merge ACS population denominators in 07_panel_assemble.py")
 
 
 if __name__ == "__main__":

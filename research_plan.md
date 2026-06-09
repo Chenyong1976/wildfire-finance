@@ -322,11 +322,32 @@ All questions resolved 2026-06-09 except Q9.
       in `code/01_build/03_cog_finance_pull.py` — done 2026-06-09.
       All 8 states: June 30 FY end (month=6), except ID (September 30) and WA (verify per county).
       FY-begin recoding: CoG year → year-1 when FY end month < 12.
-- [ ] **CoG data download and coverage audit**: run `code/01_build/03_cog_finance_pull.py`
-      Script is written; must be executed to download data, run coverage audit, and verify
-      that missingness does not cluster in post-fire years before finalising ≥ 85% rule.
-      Pre-2012 files require manual download (no automated URL pattern available).
-      Check: `data/raw/cog/cog_coverage_audit.csv` after run.
+- [x] **CoG data download and coverage audit**: done 2026-06-09. See `data/raw/cog/cog_coverage_audit.csv`.
+      **Findings (critical — review before proceeding)**:
+      - Raw panel: 3,991 obs, 485 unique counties, FY-begin years 1999–2011 and 2016–2020.
+      - FY-begin years MISSING: 2012–2015 (CoG survey years 2013–2016 not publicly available).
+      - ≥85% primary threshold: **33 counties** pass (594 obs). Sample too small for credible C&S inference.
+      - ≥70% robustness threshold: 63 counties pass.
+      - Attrition risk: 87 counties show >50% of their missing years falling in the post-fire window
+        (2016–2020). This reflects sparse survey sampling of small counties, not endogenous dropout.
+      - FY end months: 81.8% at June (month 6), 18.2% at September (Idaho; month 9). Correct.
+      - **Root cause of thin coverage**: the ≥85% threshold requires 18/21 years. With only 18 years
+        structurally available (1999–2011 + 2016–2020), the maximum achievable coverage is 18/21 = 85.7%.
+        Counties must appear in every available survey year to pass. Most small counties are sampled only
+        in quinquennial years and some Annual Survey years.
+      - **Critical gap implication**: FY-begin years 2012–2015 are missing, cutting across the pre-treatment
+        transition period. For g=2015 cohort: treatment year (FY-begin 2015) is unobservable; only k=+1
+        through k=+4 are available post-treatment. For g=2016+: contemporaneous year IS available.
+        Last observable pre-treatment data point is FY-begin 2011 for all cohorts.
+- [ ] **BLOCKER: Fill CoG 2013–2016 gap via Census API** (required for credible inference).
+      Without this, the ≥85% sample has 33 counties and the treatment year itself is missing for
+      the 2015 cohort. Steps:
+      1. Register for Census API key: https://api.census.gov/data/key_signup.html (free, instant)
+      2. Query: `https://api.census.gov/data/2013/govs/govsannual?get=GOVID,AMTNUM,AMOUNT&for=county:*&in=state:06,08,16,30,41,49,53,56&key=<KEY>`
+      3. Extend `03_cog_finance_pull.py` with `fill_gap_via_api(key, years=[2013,2014,2015,2016])` function.
+      4. Re-run coverage audit; expected improvement to ~80–100+ counties at ≥85% threshold.
+      Until this is done, analysis should use the ≥70% sample (63 counties) as interim,
+      with the understanding that results are preliminary.
 - [ ] Extend WHP and MTBS county intersection to 8-state sample
 - [ ] Panel assembly: CPI-U deflation, outlier flagging, suppression audit
 - [ ] PS-IPW matching and balance table (include county charter status)
