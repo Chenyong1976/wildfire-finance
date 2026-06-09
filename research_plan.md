@@ -231,9 +231,13 @@ deflated to 2019 dollars using the national CPI-U.
 
 ### Headline estimand
 
-**Pending** (Q9 open). Decision deferred until contribution positioning is assessed
-via literature review. Candidates: `rev_proptax_pc` (sharpest causal channel,
-testable lag structure) vs. `fiscal_balance_pc` (most policy-relevant net effect).
+**`fiscal_balance_pc`** (Q9 decided 2026-06-09). Positions directly against Liao & Kousky (2022)
+— the only existing causal paper, California municipalities only, finding a 25 pp increase in
+budget deficit probability. This paper extends to county governments across 8 western states
+with varying property tax institutions. `rev_proptax_pc` is the primary mechanism column,
+not the headline. Recommended table structure: col (1) `fiscal_balance_pc`,
+col (2) `rev_total_pc`, col (3) `exp_total_pc`, col (4) `rev_proptax_pc`.
+See `literature_review.md` §3.
 
 ---
 
@@ -298,16 +302,19 @@ All questions resolved 2026-06-09 except Q9.
 | Q6 | Home rule coding | **Both levels**: state-level doctrine (background) + county-level charter status (primary variable for propensity score and heterogeneity). |
 | Q7 | Home rule role | **Both**: county charter status in propensity score and regression adjustment (control) AND as heterogeneity variable in a dedicated table. |
 | Q8 | FEMA aid | **Secondary outcome + robustness control**: (a) in the mechanism table as an outcome, (b) as a control in one robustness specification to isolate non-FEMA fiscal effects. |
-| Q9 | Headline estimand | **Pending**. Decision deferred until literature review and contribution positioning are complete. Candidates: `rev_proptax_pc` vs. `fiscal_balance_pc`. |
+| Q9 | Headline estimand | **`fiscal_balance_pc`** (revenues minus expenditures per capita). Positions against Liao & Kousky (2022) — the only existing causal paper (California municipalities only). Leads with the policy-relevant net burden; `rev_proptax_pc` is the primary mechanism column. See `literature_review.md` §3. |
 
 ---
 
 ## 10. Pending Tasks (Ordered)
 
 - [x] Answer design questions Q1–Q8 (done 2026-06-09)
-- [ ] **Q9**: Determine headline estimand after contribution assessment via literature review
+- [x] Literature review (`/deep-research`) — done 2026-06-09; see `literature_review.md`
+- [x] **Q9**: Headline estimand = `fiscal_balance_pc`. See `literature_review.md` §3.
 - [ ] Collect home rule / Dillon's Rule data: state doctrine + county charter status
       for CA, OR, WA, ID, MT, WY, CO, UT; verify all charter dates pre-date 2015
+      Note: within-state county charter variation is limited (WA: 7/39, CO: 2 counties);
+      primary heterogeneity analysis should use cross-state home rule vs. Dillon's Rule.
 - [ ] CoG data download and coverage audit (`code/01_build/03_cog_finance_pull.py`);
       check missingness clustering by post-fire years before finalising ≥ 85% rule
 - [ ] Document fiscal year end months for 8 western states; implement FY-begin
@@ -321,5 +328,5 @@ All questions resolved 2026-06-09 except Q9.
 - [ ] Home rule heterogeneity table (county charter × treatment interaction)
 - [ ] SDiD and Two-Stage DiD
 - [ ] Robustness checks (incl. ≥ 70% CoG coverage, FEMA control spec)
-- [ ] Literature review (`/deep-research`) — prerequisite for Q9 decision
+- [x] Literature review (`/deep-research`) — done 2026-06-09; see `literature_review.md`
 - [ ] Paper draft (`/academic-paper`)
