@@ -13,11 +13,12 @@ expenditures, and fiscal balance in western US counties.
 **Sample**: Quinquennial CoG census panel, 1992–2022. States: CA, OR, WA, ID, MT, WY,
 CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022)
 = 2,408 observations. Complete coverage by design — quinquennial census, no sampling restriction.
-**Treatment**: First qualifying MTBS fire (≥1,000 acres) in 2013–2021.
-  - g=2017 cohort: first fire 2013–2016
-  - g=2022 cohort: first fire 2017–2021
-**WHP**: 2012 vintage primary (predetermined for all 2013–2021 fires); 2014 vintage robustness.
-**Status**: CoG panel built. Next: WHP 2012 raster, MTBS treatment assignment, matching.
+**Treatment**: First qualifying MTBS fire (≥1,000 acres) in 2015–2021.
+  - g=2017 cohort: first fire 2015–2016 (177 counties)
+  - g=2022 cohort: first fire 2017–2021 (112 counties)
+  - g=0 (never treated): 55 counties
+**WHP**: 2014 vintage (predetermined for fires from 2015 onward; WHP 2012 does not exist).
+**Status**: CoG panel, WHP county, MTBS county built. Next: PS-IPW matching, C&S estimation.
 
 ---
 
@@ -57,15 +58,17 @@ CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022
   or rebuilt from MTBS using the same `05_smoke_buffer.py` logic).
 - **Three estimators**: Staggered DiD (C&S), Synthetic DiD, Two-Stage DiD — same
   scripts as wildfire-health, adapted for fiscal outcomes.
-- **Matching covariates**: WHP 2012 quintile + pre-2012 fire history + pre-2012 fiscal
+- **Matching covariates**: WHP 2014 quintile + pre-2015 fire history + pre-2015 fiscal
   baseline (from 2012 CoG census: revenue per capita, property tax per capita, debt per capita) +
   RUCC + median HH income + poverty rate + population density + home rule status
   (county-level charter indicator or state-level Dillon's Rule binary).
 - **Home rule / Dillon's Rule**: Include as a pre-determined control variable in all
   main specifications and as the basis for a dedicated heterogeneity table. Source:
   state constitutional provisions and ICMA/NLC county charter records.
-- **Treatment window**: 2013–2021. WHP 2012 primary (predetermined for all cohorts).
-  C&S groups: g=2017 (fires 2013–2016), g=2022 (fires 2017–2021).
+- **Treatment window**: 2015–2021. WHP 2014 primary (predetermined from 2015 onward).
+  WHP 2012 does not exist as a USFS product. C&S groups: g=2017 (fires 2015–2016),
+  g=2022 (fires 2017–2021). Never-treated control group is thin: 55/344 counties (16%).
+  Document ESS of PS-IPW reweighted controls; thin support is expected in western US.
 - **Deflator**: deflate all per-capita fiscal outcomes to 2019 dollars using the
   **national CPI-U**. Apply before any analysis; store deflated variables with
   `_real` suffix.
@@ -81,8 +84,7 @@ CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022
 | Source | Description | Coverage | Key Limitation |
 |---|---|---|---|
 | Census of Governments Quinquennial Census | County-level revenues, expenditures, debt | 1992, 1997, 2002, 2007, 2012, 2017, 2022 | 5-year gaps; Annual Survey NOT used |
-| USFS WHP 2012 | Primary matching raster (predetermined for 2013–2021 fires) | 270 m, static | Obtain from USFS; verify vintage availability |
-| USFS WHP 2014 | Robustness check only | 270 m, static | Reuse from wildfire-health |
+| USFS WHP 2014 | Primary matching raster (predetermined for 2015–2021 fires) | 270 m, static | Shared from wildfire-health/data/raw/WHP/ |
 | MTBS | Fire perimeters and treatment assignment | 1984–2022 | Reuse from wildfire-health |
 | FEMA OpenData | Presidential Disaster Declarations | 1953–present | Mechanism control only; post-treatment |
 | ACS 5-yr | Socioeconomic covariates | 2009–2020 | Reuse from wildfire-health |
@@ -99,8 +101,8 @@ CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022
 | `year` | Calendar year (CoG fiscal year end) | — |
 | `g` | Year of first qualifying fire; 0 if never treated | MTBS |
 | `treated` | =1 if county had ≥1 MTBS fire ≥1,000 ac in year | MTBS |
-| `whp_mean` | Area-weighted mean WHP score | USFS WHP 2012 (primary); WHP 2014 (robustness) |
-| `whp_q` | WHP quintile (1–5) | Derived from WHP 2012 |
+| `whp_mean` | Area-weighted mean WHP score | USFS WHP 2014 |
+| `whp_q` | WHP quintile (1–5) | Derived from WHP 2014 |
 | `rev_total_pc` | Total general revenues per capita | CoG |
 | `rev_tax_pc` | Total tax revenues per capita | CoG |
 | `rev_proptax_pc` | Property tax revenues per capita | CoG |
