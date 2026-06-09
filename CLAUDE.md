@@ -11,7 +11,8 @@ expenditures, and fiscal balance in western US counties.
 **Design**: Callaway & Sant'Anna (2021) staggered DiD with PS-IPW matching on USFS WHP —
 identical identification strategy to the wildfire-health project.
 **Estimand**: ATT.
-**Sample**: NW US county-year panel, 2000–2020. States: CA, OR, WA, ID, MT, WY.
+**Sample**: Western US county-year panel, 2000–2020. States: CA, OR, WA, ID, MT, WY,
+CO, UT (8 Pacific-Coast/Rockies states; AZ, NV, NM excluded).
 Treatment: first qualifying MTBS fire (≥1,000 acres) in 2015–2019; WHP 2014 vintage
 predetermined for all treated cohorts.
 **Status**: Planning phase. See `research_plan.md`.
@@ -30,10 +31,15 @@ predetermined for all treated cohorts.
     per county and document the imputation rate.
   - Quinquennial Census (years ending in 2 and 7): complete coverage. For pre-treatment
     baseline matching variables, prefer the 2012 Census over Annual Survey interpolation.
-  - Fiscal year alignment: CA, OR use July–June (offset by 6 months from calendar year);
-    WA, ID, MT, WY use calendar year or varying fiscal years. Assign CoG fiscal year to
-    the calendar year in which the fiscal year ends. Document state-specific conventions
-    in `code/01_build/03_cog_finance_pull.py`.
+  - Fiscal year alignment: **assign to the calendar year in which the fiscal year
+    BEGINS** (FY July 2015–June 2016 → year 2015). Recode from CoG native FY-end
+    labeling in `code/01_build/03_cog_finance_pull.py`. Document state-specific
+    fiscal year end months for all 8 states in that script.
+  - Coverage rule: retain counties with Annual Survey data in ≥ 85% of sample years
+    (≥ 18 of 21). Impute isolated gaps by county-level linear interpolation. Run
+    robustness at ≥ 70%.
+  - `WEST_STATES <- c("06","08","16","30","41","49","53","56")`
+    (CA, CO, ID, MT, OR, UT, WA, WY). Use this vector in all R analysis scripts.
 - **Unit of analysis**: county government only (type code 1 in CoG), not all local
   governments in the county. This matches the FIPS-level treatment assignment.
   Flag if county government fiscal data is unavailable and special district or
@@ -49,8 +55,16 @@ predetermined for all treated cohorts.
   scripts as wildfire-health, adapted for fiscal outcomes.
 - **Matching covariates**: WHP quintile + pre-2014 fire history + pre-2014 fiscal
   baseline (revenue per capita, property tax per capita, debt per capita) + RUCC +
-  median HH income + poverty rate + population density.
+  median HH income + poverty rate + population density + home rule status (county-level
+  charter indicator or state-level Dillon's Rule binary — see open question 6).
+- **Home rule / Dillon's Rule**: Include as a pre-determined control variable in all
+  main specifications and as the basis for a dedicated heterogeneity table. Coding level
+  (state vs. county) to be confirmed (open question 6). Source: state constitutional
+  provisions and ICMA/NLC county charter records.
 - **Treatment window**: 2015–2019 only. WHP 2014 predetermined for all cohorts.
+- **Deflator**: deflate all per-capita fiscal outcomes to 2019 dollars using the
+  **national CPI-U**. Apply before any analysis; store deflated variables with
+  `_real` suffix.
 - **Suppress / flag**: CoG records with clearly implausible values (per-capita revenues
   > 3× state median or < 0) should be flagged and excluded with documentation.
 - **Reproducibility**: all scripts seed random processes. All paths relative to project
@@ -69,6 +83,7 @@ predetermined for all treated cohorts.
 | FEMA OpenData | Presidential Disaster Declarations | 1953–present | Mechanism control only; post-treatment |
 | ACS 5-yr | Socioeconomic covariates | 2009–2020 | Reuse from wildfire-health |
 | USDA RUCC | Urban-rural classification | 2003, 2013 | Reuse from wildfire-health |
+| ICMA Form of Government Survey / NLC | County home rule charter status | Various years | Manual verification required for some counties |
 
 ---
 
@@ -93,6 +108,8 @@ predetermined for all treated cohorts.
 | `fiscal_balance_pc` | General revenues minus expenditures per capita | Derived |
 | `fema_fire_decl` | =1 if county received FEMA fire disaster declaration in year | FEMA |
 | `smoke_buffer_excl` | =1 if within 100 km of any fire perimeter in year | Derived |
+| `home_rule_county` | =1 if county has adopted a home rule charter | ICMA / state records |
+| `dillons_rule_state` | =1 if state follows Dillon's Rule for county powers | NLC / state constitutions |
 
 ---
 
