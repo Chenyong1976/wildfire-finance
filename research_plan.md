@@ -311,14 +311,22 @@ All questions resolved 2026-06-09 except Q9.
 - [x] Answer design questions Q1–Q8 (done 2026-06-09)
 - [x] Literature review (`/deep-research`) — done 2026-06-09; see `literature_review.md`
 - [x] **Q9**: Headline estimand = `fiscal_balance_pc`. See `literature_review.md` §3.
-- [ ] Collect home rule / Dillon's Rule data: state doctrine + county charter status
-      for CA, OR, WA, ID, MT, WY, CO, UT; verify all charter dates pre-date 2015
-      Note: within-state county charter variation is limited (WA: 7/39, CO: 2 counties);
-      primary heterogeneity analysis should use cross-state home rule vs. Dillon's Rule.
-- [ ] CoG data download and coverage audit (`code/01_build/03_cog_finance_pull.py`);
-      check missingness clustering by post-fire years before finalising ≥ 85% rule
-- [ ] Document fiscal year end months for 8 western states; implement FY-begin
-      recoding in `03_cog_finance_pull.py`
+- [x] Collect home rule / Dillon's Rule data: state doctrine + county charter status
+      for CA, OR, WA, ID, MT, WY, CO, UT; done 2026-06-09 via `code/01_build/00_home_rule_compile.py`
+      Findings: 34–36 valid pre-2015 charter counties (CA:14, CO:2, MT:3*, OR:9, WA:6).
+      Clark County WA (charter 2015) excluded. Montana charter dates unconfirmed — verify
+      via MT Secretary of State before using in analysis. WY home rule is municipal only
+      (counties follow Dillon's Rule). UT home rule statewide by statute (no individual charters).
+      Primary heterogeneity: cross-state (home rule states vs. Dillon's Rule states: ID, WY).
+- [x] Document fiscal year end months for 8 western states; implement FY-begin recoding
+      in `code/01_build/03_cog_finance_pull.py` — done 2026-06-09.
+      All 8 states: June 30 FY end (month=6), except ID (September 30) and WA (verify per county).
+      FY-begin recoding: CoG year → year-1 when FY end month < 12.
+- [ ] **CoG data download and coverage audit**: run `code/01_build/03_cog_finance_pull.py`
+      Script is written; must be executed to download data, run coverage audit, and verify
+      that missingness does not cluster in post-fire years before finalising ≥ 85% rule.
+      Pre-2012 files require manual download (no automated URL pattern available).
+      Check: `data/raw/cog/cog_coverage_audit.csv` after run.
 - [ ] Extend WHP and MTBS county intersection to 8-state sample
 - [ ] Panel assembly: CPI-U deflation, outlier flagging, suppression audit
 - [ ] PS-IPW matching and balance table (include county charter status)
