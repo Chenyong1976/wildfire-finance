@@ -28,18 +28,21 @@ DATA SOURCE — THREE ERAS:
               Key columns: Year4, Type Code, FIPS Code-State, County,
               Property Tax, General Revenue, General Expenditure, etc.
 
-  2013-2016:  *** NOT AVAILABLE as public individual unit files. ***
-              Census Bureau directory is empty for these years.
-              Options: (1) Census API with key (api.census.gov/data/key_signup.html),
-              (2) ICPSR request, (3) treat as structural gap.
-              This creates a 4-year gap in the pre-treatment panel.
+  2013-2016:  Fixed-width long format (34 chars/record, 14-char gov ID)
+              https://www2.census.gov/programs-surveys/gov-finances/datasets/
+              {YEAR}/public-use-datasets/{YEAR}FinEstDAT_*_pu.txt (inside zip)
+              Record layout: [0:14] gov ID, [14:17] item code,
+              [17:29] amount ($000s, right-justified), [29:33] year, [33] flag
+              Gov ID: [0:2]=state FIPS, [2]=type (1=county), [3:6]=county FIPS,
+              [6:14]=local ID (8 chars, vs 6 chars in 2017+ format)
 
-  2017-2021:  Fixed-width long format (one row per item per government)
+  2017-2021:  Fixed-width long format (32 chars/record, 12-char gov ID)
               https://www2.census.gov/programs-surveys/gov-finances/tables/
               {YEAR}/{YEAR}_Individual_Unit_File.zip
               Record layout: [0:12] gov ID, [12:15] item code,
               [15:27] amount ($000s, right-justified), [27:31] year, [31] flag
-              Gov ID: [0:2]=state FIPS, [2]=type (1=county), [3:6]=county FIPS
+              Gov ID: [0:2]=state FIPS, [2]=type (1=county), [3:6]=county FIPS,
+              [6:12]=local ID (6 chars)
 
 ITEM CODES (CoG Annual Survey):
   T01  Property tax revenue
@@ -100,6 +103,17 @@ COG_HIST_URL = (
 )
 HIST_YEARS = set(range(2000, 2013))   # covered by historical archive
 
+# 2013-2016: individual unit files exist under datasets/{year}/public-use-datasets/
+# Filename patterns vary by year; resolved dynamically in parse_individual_unit_file().
+GAP_YEAR_BASE = "https://www2.census.gov/programs-surveys/gov-finances/datasets/{year}/public-use-datasets/"
+GAP_YEAR_FILES: dict[int, str] = {
+    2013: "https://www2.census.gov/programs-surveys/gov-finances/datasets/2013/public-use-datasets/2013-individual-unit-file-revised.zip",
+    2014: "https://www2.census.gov/programs-surveys/gov-finances/datasets/2014/public-use-datasets/2014-individual-unit-file.zip",
+    2015: "https://www2.census.gov/programs-surveys/gov-finances/datasets/2015/public-use-datasets/2015-individual-unit-file.zip",
+    2016: "https://www2.census.gov/programs-surveys/gov-finances/datasets/2016/public-use-datasets/2016_Individual_Unit_file.zip",
+}
+
+# 2017-2021: individual unit files under tables/{year}/
 NEW_FORMAT_URLS: dict[int, str] = {
     yr: (
         f"https://www2.census.gov/programs-surveys/gov-finances/tables/{yr}/"
@@ -108,7 +122,12 @@ NEW_FORMAT_URLS: dict[int, str] = {
     for yr in range(2017, 2022)
 }
 
-GAP_YEARS = set(range(2013, 2017))    # no public individual unit files available
+# Fixed-width record layout by era
+# 2013-2016: 34-char records; gov ID is 14 chars
+FW_2013_COLSPECS = [(0, 14), (14, 17), (17, 29), (29, 33), (33, 34)]
+# 2017-2021: 32-char records; gov ID is 12 chars
+FW_2017_COLSPECS = [(0, 12), (12, 15), (15, 27), (27, 31), (31, 32)]
+FW_NAMES = ["govid", "item", "amount_str", "year_str", "flag"]
 
 # ---------------------------------------------------------------------------
 # Historical archive column -> output variable mapping
@@ -239,86 +258,93 @@ def parse_historical_year(archive_zip: Path, year: int) -> pd.DataFrame | None:
     return result
 
 # ---------------------------------------------------------------------------
-# New format parser (2017-2021, fixed-width long format)
+# Individual unit file parser — handles 2013-2016 (34-char) and 2017-2021 (32-char)
 # ---------------------------------------------------------------------------
-
-# Fixed-width record layout (0-indexed, each record is 32 chars):
-#   [0:12]  Government ID: [0:2]=state FIPS, [2]=type, [3:6]=county FIPS, [6:12]=local ID
-#   [12:15] Item code (e.g. T01, A15, E61)
-#   [15:27] Amount in $thousands (right-justified with spaces)
+#
+# 2013-2016 layout (34 chars/record):
+#   [0:14]  Government ID (14 chars): [0:2]=state FIPS, [2]=type, [3:6]=county, [6:14]=local ID
+#   [14:17] Item code
+#   [17:29] Amount in $thousands (12 chars, right-justified)
+#   [29:33] Survey year (4 digits)
+#   [33]    Revision flag
+#
+# 2017-2021 layout (32 chars/record):
+#   [0:12]  Government ID (12 chars): [0:2]=state FIPS, [2]=type, [3:6]=county, [6:12]=local ID
+#   [12:15] Item code
+#   [15:27] Amount in $thousands (12 chars, right-justified)
 #   [27:31] Survey year (4 digits)
-#   [31]    Revision flag (R=revised, P=preliminary, etc.)
-FW_COLSPECS = [(0, 12), (12, 15), (15, 27), (27, 31), (31, 32)]
-FW_NAMES    = ["govid", "item", "amount_str", "year_str", "flag"]
+#   [31]    Revision flag
 
 
-def parse_new_format_year(zip_path: Path, year: int) -> pd.DataFrame | None:
+def parse_individual_unit_file(zip_path: Path, year: int) -> pd.DataFrame | None:
     """
-    Parse a 2017-2021 CoG Individual Unit File (fixed-width long format).
-    Filters to county governments in WEST_STATES, pivots items to wide format.
+    Parse a CoG Individual Unit File (fixed-width long format).
+    Handles both the 2013-2016 (34-char, 14-char gov ID) and
+    2017-2021 (32-char, 12-char gov ID) record layouts.
+    Filters to county governments (type=1) in WEST_STATES.
     """
     try:
         with zipfile.ZipFile(zip_path) as zf:
-            data_files = [
-                n for n in zf.namelist()
-                if "FinEstDAT" in n and n.endswith(".txt")
-            ]
+            data_files = [n for n in zf.namelist() if "FinEstDAT" in n and n.lower().endswith(".txt")]
             if not data_files:
-                # Fall back: any .txt not a PID or aggregate file
                 data_files = [
                     n for n in zf.namelist()
                     if n.lower().endswith(".txt")
-                    and not any(k in n for k in ("PID", "statetype", "Aggregate", "Documentation"))
+                    and not any(k in n.lower() for k in ("statetype", "gid", "documentation", "disclaimer"))
                 ]
             if not data_files:
-                print(f"  [WARN] {year}: no data file found in zip")
+                print(f"  [WARN] {year}: no FinEstDAT file found in zip")
                 return None
             raw = zf.read(data_files[0])
     except Exception as e:
-        print(f"  [WARN] {year}: zip error — {e}")
+        print(f"  [WARN] {year}: zip error - {e}")
         return None
+
+    # Detect record length from first non-empty line to choose layout
+    first_line = next((l for l in raw.split(b"\n") if l.strip()), b"")
+    rec_len = len(first_line.rstrip(b"\r\n"))
+    if rec_len >= 34:
+        colspecs = FW_2013_COLSPECS   # 2013-2016: 34 chars, 14-char gov ID
+        govid_len = 14
+    else:
+        colspecs = FW_2017_COLSPECS   # 2017-2021: 32 chars, 12-char gov ID
+        govid_len = 12
 
     try:
         df = pd.read_fwf(
             io.BytesIO(raw),
-            colspecs=FW_COLSPECS,
+            colspecs=colspecs,
             names=FW_NAMES,
             dtype=str,
             encoding="latin-1",
             header=None,
         )
     except Exception as e:
-        print(f"  [WARN] {year}: fixed-width parse error — {e}")
+        print(f"  [WARN] {year}: fixed-width parse error - {e}")
         return None
 
-    # Filter to county governments in western states
     df = df.dropna(subset=["govid"])
     df["govid"] = df["govid"].str.strip()
-    df = df[df["govid"].str.len() == 12].copy()
+    df = df[df["govid"].str.len() == govid_len].copy()
 
-    df["state"] = df["govid"].str[0:2]
-    df["gtype"] = df["govid"].str[2]
+    df["state"]   = df["govid"].str[0:2]
+    df["gtype"]   = df["govid"].str[2]
     df["county3"] = df["govid"].str[3:6]
-    df["fips"] = df["state"] + df["county3"]
+    df["fips"]    = df["state"] + df["county3"]
 
     mask = (df["state"].isin(WEST_STATES)) & (df["gtype"] == COUNTY_TYPE)
     df = df[mask].copy()
     if df.empty:
-        print(f"  [WARN] {year}: no county governments in western states after filter")
+        print(f"  [WARN] {year}: no county governments in western states")
         return None
 
-    # Keep only fiscal items we need
-    df["item"] = df["item"].str.strip().str.upper()
+    df["item"]   = df["item"].str.strip().str.upper()
     df = df[df["item"].isin(NEW_ITEMS)].copy()
-
     df["amount"] = pd.to_numeric(df["amount_str"].str.strip(), errors="coerce") * 1000
 
-    # Pivot to wide: one row per county, one column per item
     wide = df.pivot_table(index="fips", columns="item", values="amount", aggfunc="first")
     wide.columns.name = None
     wide = wide.reset_index()
-
-    # Rename item codes to output variable names
     wide = wide.rename(columns=NEW_ITEMS)
     wide["year_cog"] = year
     return wide
@@ -399,11 +425,6 @@ def main() -> None:
     print("=== Census of Governments Annual Survey Pull ===")
     print(f"Sample years: {SAMPLE_YEARS[0]}-{SAMPLE_YEARS[-1]}")
     print(f"States: {sorted(WEST_STATES)}")
-    print(f"\nNOTE: Individual unit files for 2013-2016 are NOT publicly available.")
-    print(f"  Coverage will be based on: 2000-2012 (historical archive) + 2017-2021.")
-    print(f"  2013-2016 gap = 4 missing years in the pre-treatment window.")
-    print(f"  To fill this gap, register for Census API key at:")
-    print(f"  https://api.census.gov/data/key_signup.html")
 
     frames: list[pd.DataFrame] = []
 
@@ -417,15 +438,21 @@ def main() -> None:
     else:
         print("ERROR: Could not download historical archive.")
 
-    # ---- GAP YEARS (2013-2016): skip with notice ----
-    print(f"\n[SKIP] 2013-2016: no public individual unit files. Proceeding with gap.")
+    # ---- GAP YEARS (2013-2016): public-use-datasets path ----
+    for year, url in tqdm(sorted(GAP_YEAR_FILES.items()), desc="Gap years 2013-2016"):
+        zip_path = _fetch(url, RAW / f"cog_{year}.zip", str(year))
+        if zip_path is None:
+            continue
+        df = parse_individual_unit_file(zip_path, year)
+        if df is not None and not df.empty:
+            frames.append(df)
 
     # ---- NEW FORMAT (2017-2021) ----
     for year, url in tqdm(sorted(NEW_FORMAT_URLS.items()), desc="New format 2017-2021"):
         zip_path = _fetch(url, RAW / f"cog_{year}.zip", str(year))
         if zip_path is None:
             continue
-        df = parse_new_format_year(zip_path, year)
+        df = parse_individual_unit_file(zip_path, year)
         if df is not None and not df.empty:
             frames.append(df)
 
