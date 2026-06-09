@@ -8,14 +8,16 @@ Inherits all rules from `~/.claude/CLAUDE.md`. Project-specific additions below.
 
 **Research question**: Causal effect of wildfire incidence on local government revenues,
 expenditures, and fiscal balance in western US counties.
-**Design**: Callaway & Sant'Anna (2021) staggered DiD with PS-IPW matching on USFS WHP —
-identical identification strategy to the wildfire-health project.
+**Design**: Callaway & Sant'Anna (2021) staggered DiD with PS-IPW matching on USFS WHP.
 **Estimand**: ATT.
-**Sample**: Western US county-year panel, 2000–2020. States: CA, OR, WA, ID, MT, WY,
-CO, UT (8 Pacific-Coast/Rockies states; AZ, NV, NM excluded).
-Treatment: first qualifying MTBS fire (≥1,000 acres) in 2015–2019; WHP 2014 vintage
-predetermined for all treated cohorts.
-**Status**: Planning phase. See `research_plan.md`.
+**Sample**: Quinquennial CoG census panel, 1992–2022. States: CA, OR, WA, ID, MT, WY,
+CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022)
+= 2,408 observations. Complete coverage by design — quinquennial census, no sampling restriction.
+**Treatment**: First qualifying MTBS fire (≥1,000 acres) in 2013–2021.
+  - g=2017 cohort: first fire 2013–2016
+  - g=2022 cohort: first fire 2017–2021
+**WHP**: 2012 vintage primary (predetermined for all 2013–2021 fires); 2014 vintage robustness.
+**Status**: CoG panel built. Next: WHP 2012 raster, MTBS treatment assignment, matching.
 
 ---
 
@@ -25,19 +27,21 @@ predetermined for all treated cohorts.
   assembly and spatial operations. Mirrors wildfire-health stack exactly.
 - **DiD estimation**: R `did::att_gt()` for C&S; `fixest::sunab()` for Sun-Abraham;
   `did2s` for two-stage DiD; `synthdid` for synthetic DiD.
-- **Public finance data**: Census of Governments (CoG) Annual Survey and Quinquennial Census.
-  - Annual Survey (1992–2021): sampled — verify county coverage before using. Small
-    counties (population < 25,000) may have gaps; impute only if ≤ 3 missing years
-    per county and document the imputation rate.
-  - Quinquennial Census (years ending in 2 and 7): complete coverage. For pre-treatment
-    baseline matching variables, prefer the 2012 Census over Annual Survey interpolation.
-  - Fiscal year alignment: **assign to the calendar year in which the fiscal year
-    BEGINS** (FY July 2015–June 2016 → year 2015). Recode from CoG native FY-end
-    labeling in `code/01_build/03_cog_finance_pull.py`. Document state-specific
-    fiscal year end months for all 8 states in that script.
-  - Coverage rule: retain counties with Annual Survey data in ≥ 85% of sample years
-    (≥ 18 of 21). Impute isolated gaps by county-level linear interpolation. Run
-    robustness at ≥ 70%.
+- **Public finance data**: Census of Governments (CoG) **quinquennial census years only**
+  (1992, 1997, 2002, 2007, 2012, 2017, 2022). Annual Survey years are NOT used — sampling
+  gaps create endogenous attrition risk incompatible with the staggered DiD design.
+  - Complete coverage by design: all county governments in the 8-state sample appear in all
+    7 census years (344 counties, 2,408 obs). No coverage restriction needed.
+  - Historical archive (1992–2012): `_IndFin_1967-2012.zip`. FIPS recovered via name-based
+    crosswalk to Census `national_county.txt`. State filtering uses `FIPS Code-State` column
+    (NOT `State Code`, which is alphabetical not FIPS).
+  - 2017, 2022: Individual Unit Files (32-char fixed-width). FIPS embedded in gov ID.
+  - Fiscal year alignment: **assign to the calendar year in which the fiscal year BEGINS**
+    (FY July 2016–June 2017 → year 2016). All 8 states have non-December FY ends;
+    always subtract 1 from the CoG-labeled year. FY-begin years: 1991, 1996, 2001, 2006,
+    2011, 2016, 2021.
+  - Montana consolidated city-counties (Deer Lodge 30023, Silver Bow 30093) are absent from
+    CoG county government (type=1) records. Treat as unobservable; do not impute.
   - `WEST_STATES <- c("06","08","16","30","41","49","53","56")`
     (CA, CO, ID, MT, OR, UT, WA, WY). Use this vector in all R analysis scripts.
 - **Unit of analysis**: county government only (type code 1 in CoG), not all local
@@ -53,15 +57,15 @@ predetermined for all treated cohorts.
   or rebuilt from MTBS using the same `05_smoke_buffer.py` logic).
 - **Three estimators**: Staggered DiD (C&S), Synthetic DiD, Two-Stage DiD — same
   scripts as wildfire-health, adapted for fiscal outcomes.
-- **Matching covariates**: WHP quintile + pre-2014 fire history + pre-2014 fiscal
-  baseline (revenue per capita, property tax per capita, debt per capita) + RUCC +
-  median HH income + poverty rate + population density + home rule status (county-level
-  charter indicator or state-level Dillon's Rule binary — see open question 6).
+- **Matching covariates**: WHP 2012 quintile + pre-2012 fire history + pre-2012 fiscal
+  baseline (from 2012 CoG census: revenue per capita, property tax per capita, debt per capita) +
+  RUCC + median HH income + poverty rate + population density + home rule status
+  (county-level charter indicator or state-level Dillon's Rule binary).
 - **Home rule / Dillon's Rule**: Include as a pre-determined control variable in all
-  main specifications and as the basis for a dedicated heterogeneity table. Coding level
-  (state vs. county) to be confirmed (open question 6). Source: state constitutional
-  provisions and ICMA/NLC county charter records.
-- **Treatment window**: 2015–2019 only. WHP 2014 predetermined for all cohorts.
+  main specifications and as the basis for a dedicated heterogeneity table. Source:
+  state constitutional provisions and ICMA/NLC county charter records.
+- **Treatment window**: 2013–2021. WHP 2012 primary (predetermined for all cohorts).
+  C&S groups: g=2017 (fires 2013–2016), g=2022 (fires 2017–2021).
 - **Deflator**: deflate all per-capita fiscal outcomes to 2019 dollars using the
   **national CPI-U**. Apply before any analysis; store deflated variables with
   `_real` suffix.
@@ -76,9 +80,9 @@ predetermined for all treated cohorts.
 
 | Source | Description | Coverage | Key Limitation |
 |---|---|---|---|
-| Census of Governments Annual Survey | County-level revenues, expenditures, debt | 1992–2021 (annual, sampled) | Incomplete for small counties; verify coverage |
-| Census of Governments Quinquennial Census | Same, complete coverage | 1992, 1997, 2002, 2007, 2012, 2017 | 5-year gaps |
-| USFS WHP 2014 | Pre-treatment fire hazard raster | 270 m, static | Reuse from wildfire-health |
+| Census of Governments Quinquennial Census | County-level revenues, expenditures, debt | 1992, 1997, 2002, 2007, 2012, 2017, 2022 | 5-year gaps; Annual Survey NOT used |
+| USFS WHP 2012 | Primary matching raster (predetermined for 2013–2021 fires) | 270 m, static | Obtain from USFS; verify vintage availability |
+| USFS WHP 2014 | Robustness check only | 270 m, static | Reuse from wildfire-health |
 | MTBS | Fire perimeters and treatment assignment | 1984–2022 | Reuse from wildfire-health |
 | FEMA OpenData | Presidential Disaster Declarations | 1953–present | Mechanism control only; post-treatment |
 | ACS 5-yr | Socioeconomic covariates | 2009–2020 | Reuse from wildfire-health |
@@ -95,8 +99,8 @@ predetermined for all treated cohorts.
 | `year` | Calendar year (CoG fiscal year end) | — |
 | `g` | Year of first qualifying fire; 0 if never treated | MTBS |
 | `treated` | =1 if county had ≥1 MTBS fire ≥1,000 ac in year | MTBS |
-| `whp_mean` | Area-weighted mean WHP score | USFS WHP 2014 |
-| `whp_q` | WHP quintile (1–5) | Derived |
+| `whp_mean` | Area-weighted mean WHP score | USFS WHP 2012 (primary); WHP 2014 (robustness) |
+| `whp_q` | WHP quintile (1–5) | Derived from WHP 2012 |
 | `rev_total_pc` | Total general revenues per capita | CoG |
 | `rev_tax_pc` | Total tax revenues per capita | CoG |
 | `rev_proptax_pc` | Property tax revenues per capita | CoG |
