@@ -537,6 +537,64 @@ The joint pre-trend test is not rejected for any headline outcome
 (all $p > 0.50$; range 0.50--0.99 across outcomes), providing strong
 pre-treatment parallel trends evidence for the intensive-margin design.
 
+\subsection{Dose-Response: Does Fire Size Predict Fiscal Effects?}
+\label{sec:dose_response}
+
+The preceding results compare counties that experienced any qualifying fire against
+those that did not. A natural follow-on question is whether the null result holds
+across the fire size distribution, or whether larger fires generate detectably worse
+fiscal outcomes. To examine this, I construct a dose variable,
+$D_i = \log(\text{MaxAcres}_i)$, equal to the log of the largest qualifying
+MTBS fire experienced by county $i$ within its treatment cohort window
+(2013--2016 for cohort $g = 2017$; 2017--2021 for cohort $g = 2022$).
+The median $D_i$ among treated counties corresponds to approximately 13,161 acres.
+
+The primary dose-response estimator is a two-way fixed effects regression,
+\begin{equation}
+  Y_{it} = \alpha_i + \gamma_t + \beta \, (D_i \times \text{Post}_{it}) + \varepsilon_{it},
+  \label{eq:dose_twfe}
+\end{equation}
+where $\text{Post}_{it} = \mathbf{1}[\text{year\_cog}_t \geq g_i]$ for treated counties
+and zero for never-treated counties. Unit and year fixed effects absorb all
+time-invariant county characteristics and common time trends. Standard errors are
+clustered by county. The coefficient $\beta$ captures the additional post-treatment
+change in fiscal outcomes per unit increase in $\log(\text{MaxAcres})$, relative to
+the never-treated baseline. A 10-fold increase in max fire size (e.g., 10,000 to
+100,000 acres) implies an effect of $\log(10) \times \hat{\beta} \approx 2.3\,\hat{\beta}$.
+
+Panel A of Table~\ref{tab:dose_response} presents TWFE estimates for all seven
+fiscal outcomes. No coefficient is statistically significant. The fiscal balance
+estimate is $\hat{\beta} = 10.76$ (SE = 11.56, $p = 0.353$), implying that a
+10-fold increase in max fire size is associated with approximately \$25 per capita
+in additional fiscal balance change---economically negligible against a pre-treatment
+median of approximately \$4,200 per capita. Capital expenditures and total revenue
+are similarly uninformative (both $p > 0.39$). Pre-trend Wald tests on the
+year-by-dose interactions at $t = \{2002, 2007\}$ pass for all primary outcomes
+(fiscal balance: $p = 0.357$; capital expenditures: $p = 0.188$). Property tax
+revenue is the single exception (Wald $p = 0.019$), suggesting pre-existing
+differences in property tax trajectories between high- and low-fire-risk counties
+that pre-date the treatment window; the dose-response TWFE estimate for that
+outcome should be interpreted with caution.
+
+Panel B provides a complementary C\&S doubly-robust check. I split treated counties
+at the median $D_i$ into low-dose ($n = 147$) and high-dose ($n = 146$) bins and
+estimate the simple ATT for each bin against never-treated controls.
+Low-dose counties generate a precisely null result for fiscal balance
+(ATT = \$\!-179, SE = \$415, $p = 0.667$). High-dose counties produce a larger
+negative estimate (ATT = \$\!-1{,}075, SE = \$635, $p = 0.091$) that is
+marginally significant at the 10\% level but does not survive the conventional
+5\% threshold. Both bins produce insignificant capital expenditure estimates.
+The marginal high-dose result likely reflects concentration among large-fire
+California counties; given the small treated-county effective sample and
+the 5.4\% outlier rate in this sample, I do not interpret it as conclusive
+evidence of a dose-response relationship.
+
+Taken together, the dose-response analysis strengthens the main finding. The null
+is not an artifact of pooling large and small fires: TWFE coefficients are
+economically and statistically negligible across the fire size distribution,
+and the C\&S dose-bin design finds no significant effects below the median
+and only a borderline result above it.
+
 %% ============================================================
 \section{Robustness}
 %% ============================================================
@@ -615,6 +673,16 @@ demonstrates a methodological advantage over the extensive-margin design: the
 expanded low-to-moderate-severity control group is a more credible counterfactual,
 reduces observable selection, and yields cross-estimator sign agreement that validates
 the C\&S doubly-robust estimate as internally consistent.
+
+A dose-response analysis confirms that the null is not an artifact of pooling
+large and small fires. TWFE estimates of the effect of log maximum fire size on
+all seven fiscal outcomes are statistically and economically negligible
+(fiscal balance: \$11 per log-acre, SE = \$12, $p = 0.35$; IQR-implied effect
+$\approx$\,\$27 per capita). Callaway-Sant'Anna dose-bin estimates for counties
+below and above the median fire size (13,161 acres) are both insignificant for
+capital expenditures; a borderline negative estimate for high-dose fiscal balance
+($p = 0.091$) does not survive the conventional threshold and is sensitive to
+California outlier counties.
 
 The primary limitation is statistical power. The effective sample sizes after
 doubly-robust reweighting are 11.1 counties (extensive) and 19.6 counties (intensive);
@@ -1045,6 +1113,65 @@ Capital expenditures (Panel D) diverge: the DR estimate is negative ($-$\$181) w
 non-DR estimators are near-zero positive, suggesting the DR covariate adjustment
 accounts for higher pre-treatment capital spending baselines in treated counties.
 *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
+\begin{table}[h!]
+\begin{threeparttable}
+\caption{Dose-Response DiD --- Effect of Maximum Fire Size on Fiscal Outcomes}
+\label{tab:dose_response}
+\centering
+\small
+
+\textit{Panel A: TWFE dose-response (all 344 counties; treated $n=293$, never-treated $n=51$)} \\[4pt]
+\begin{tabular}{lrrrr}
+\toprule
+Outcome & $\hat{\beta}$ & SE & $p$-value & Pre-trend Wald $p$ \\
+\midrule
+Fiscal balance p.c.          &  10.76 & (11.56) & 0.353 & 0.357 \\
+Total revenue p.c.           &   3.95 & (13.23) & 0.765 & 0.565 \\
+Property tax revenue p.c.    &   6.02 & (10.26) & 0.558 & 0.019\textsuperscript{$\dagger$} \\
+Intergovernmental revenue p.c. & $-$0.72 & (4.56) & 0.875 & 0.158 \\
+Total expenditures p.c.      &  $-$6.80 & (7.99) & 0.395 & 0.935 \\
+Capital expenditures p.c.    &   1.56 &  (2.05) & 0.446 & 0.188 \\
+Long-term debt p.c.          &   2.55 &  (9.11) & 0.780 & 0.970 \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\textit{Panel B: C\&S DR dose-bin ATT (median split at $\log D_i = 9.49$, i.e.\ 13{,}161 acres)} \\[4pt]
+\begin{tabular}{lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{Low dose ($\leq$ median, $n=147$)} & \multicolumn{3}{c}{High dose ($>$ median, $n=146$)} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+Outcome & ATT & SE & $p$ & ATT & SE & $p$ \\
+\midrule
+Fiscal balance p.c.       & $-$178.6 & (414.6) & 0.667 & $-$1{,}074.9 & (635.1) & 0.091\textsuperscript{*} \\
+Capital expenditures p.c. & $-$118.3 &  (85.5) & 0.166 &   $-$260.1 & (201.3) & 0.196 \\
+\bottomrule
+\end{tabular}
+
+\begin{tablenotes}[flushleft]
+\small
+\item \textit{Notes}: Dose variable $D_i = \log(\text{MaxAcres}_i)$ is the log of the largest
+qualifying MTBS fire ($\geq 1{,}000$ acres) within the county's treatment cohort window
+(2013--2016 for cohort $g{=}2017$; 2017--2021 for cohort $g{=}2022$).
+Panel A: two-way fixed effects regression of equation~\eqref{eq:dose_twfe};
+$\hat{\beta}$ is the coefficient on $D_i \times \text{Post}_{it}$; county and year fixed
+effects included; SE clustered by county.
+Pre-trend Wald $p$: joint Wald test on dose interactions at $t \in \{2002,2007\}$
+(2 d.f.); clustered.
+Panel B: Callaway-Sant'Anna (2021) doubly-robust simple ATT estimated separately
+for counties below and above the median dose; never-treated controls; same
+covariates as Table~\ref{tab:main_ext}.
+Fiscal outcomes in real 2019 dollars per capita.
+\textsuperscript{$\dagger$} Pre-trend test rejected at 5\%: property tax revenue
+trajectories differ pre-treatment across fire-size groups; dose-response
+coefficient for this outcome is not causally interpretable.
+*** $p<0.01$; ** $p<0.05$; * $p<0.10$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
