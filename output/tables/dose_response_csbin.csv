@@ -1,0 +1,5 @@
+"outcome","estimator","coef","se","pvalue","pretrend_waldp"
+"fiscal_balance_pc","CS_low_dose",-178.6,414.6,0.667,NA
+"fiscal_balance_pc","CS_high_dose",-1074.9,635.1,0.091,NA
+"exp_capital_pc","CS_low_dose",-118.3,85.5,0.166,NA
+"exp_capital_pc","CS_high_dose",-260.1,201.3,0.196,NA
