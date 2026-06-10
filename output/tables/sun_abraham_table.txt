@@ -1,0 +1,13 @@
+Sun & Abraham (2021) Estimator — Heterogeneity-Robust TWFE
+  Formula: y ~ sunab(g_cog, year_cog) | county FE + year FE
+  g_cog = CoG-census cohort (0=never, 2017, 2022)
+  ref.p = -5 (l=-5 is base period for g=2017 cohort)
+
+Outcome                  ATT ($)       SE          95% CI    p-val    Sig
+------------------------------------------------------------------------------ 
+fiscal_balance_pc         -126.4    187.0  [-492.8,  240.0]    0.499       
+rev_total_pc               -15.7    209.7  [-426.7,  395.2]    0.940       
+rev_proptax_pc            -140.6    175.9  [-485.5,  204.2]    0.424       
+exp_capital_pc               6.2     41.1  [ -74.2,   86.7]    0.879       
+------------------------------------------------------------------------------ 
+Note: clustered SE by county. *** p<0.01 ** p<0.05 * p<0.10

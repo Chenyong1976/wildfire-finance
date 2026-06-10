@@ -104,7 +104,15 @@ specs <- list(
   list(label = "(4) WHP 2014 xformla",
        data_filter   = function(d) d,
        control_group = "nevertreated",
-       xformla       = xf_whp14)
+       xformla       = xf_whp14),
+  list(label = "(5) Excl. California",
+       data_filter   = function(d) {
+         ## Remove all California counties (FIPS 06xxx). Tests whether results
+         ## are driven by the large CA high-severity fire share (~21% of treated).
+         filter(d, !startsWith(fips, "06"))
+       },
+       control_group = "nevertreated",
+       xformla       = xf_base)
 )
 
 outcomes <- c("fiscal_balance_pc", "rev_total_pc", "exp_capital_pc")

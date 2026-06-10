@@ -1,0 +1,12 @@
+Synthetic DiD ATT — Wildfire Finance
+Estimator: Arkhangelsky et al. (2021); bootstrap SE replications=500
+Staggered: cohort-specific estimates pooled with cohort-size weights
+
+Outcome                  ATT ($)       SE          95% CI    p-val    Sig
+------------------------------------------------------------------------------ 
+fiscal_balance_pc         -252.2    201.6  [-647.4,  142.9]    0.211       
+rev_total_pc              -137.6    225.6  [-579.8,  304.6]    0.542       
+rev_proptax_pc            -231.4    177.6  [-579.6,  116.8]    0.193       
+exp_capital_pc              16.1     20.4  [ -23.9,   56.1]    0.431       
+------------------------------------------------------------------------------ 
+Note: *** p<0.01 ** p<0.05 * p<0.10
