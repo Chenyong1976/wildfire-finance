@@ -121,6 +121,17 @@ def load_mtbs_perimeters() -> gpd.GeoDataFrame:
         pd.to_numeric(fires[sev_col], errors="coerce") if sev_col else np.nan
     )
 
+    # HIGH_THRES: per-fire dNBR threshold for the High-severity class.
+    # Values 100–5000 are valid thresholds set by MTBS analysts (indicating detectable
+    # high-severity burning). Sentinel values 9999 / -9999 mean no high-severity class
+    # was identified (typically low-moderate severity fires, e.g. sage brush burns).
+    high_col = next((c for c in fires.columns if c.lower() == "high_thres"), None)
+    if high_col:
+        fires["high_thres_raw"] = pd.to_numeric(fires[high_col], errors="coerce")
+    else:
+        fires["high_thres_raw"] = np.nan
+    fires["high_sev_flag"] = fires["high_thres_raw"].between(100, 5000).astype(int)
+
     # Filter to analysis window BEFORE reprojection to avoid OOM on full dataset
     fires = fires[
         (fires["fire_year"] >= YEAR_MIN)
@@ -186,7 +197,8 @@ def build_county_year_panel(
             fire_count=("fire_acres", "count"),
             total_acres=("fire_acres", "sum"),
             mean_severity=("severity_raw", "mean"),
-        )
+            has_high_sev_fire=("high_sev_flag", "max"),   # 1 if any intersecting fire
+        )                                                  # had a valid HIGH_THRES class
         .reset_index()
         .rename(columns={"fire_year": "year"})
     )
@@ -200,22 +212,25 @@ def build_county_year_panel(
         columns=["fips", "year"],
     )
     panel = full_panel.merge(
-        agg[["fips", "year", "fire_in_year", "log_acres", "mtbs_severity"]],
+        agg[["fips", "year", "fire_in_year", "log_acres", "mtbs_severity",
+             "has_high_sev_fire"]],
         on=["fips", "year"], how="left",
     )
-    panel["fire_in_year"]  = panel["fire_in_year"].fillna(0).astype(int)
-    panel["log_acres"]     = panel["log_acres"].fillna(0)
-    panel["mtbs_severity"] = panel["mtbs_severity"].fillna(0)
+    panel["fire_in_year"]     = panel["fire_in_year"].fillna(0).astype(int)
+    panel["log_acres"]        = panel["log_acres"].fillna(0)
+    panel["mtbs_severity"]    = panel["mtbs_severity"].fillna(0)
+    panel["has_high_sev_fire"] = panel["has_high_sev_fire"].fillna(0).astype(int)
 
-    # Treatment indicator: first qualifying fire in [2013, 2021].
+    # --- Intensive margin treatment: high-severity fires only ---
+    # HIGH_THRES in (100, 5000) = MTBS identified a distinct high-severity dNBR class.
+    # HIGH_THRES=9999 is a sentinel meaning no high-severity class was detected.
     panel["treated"] = (
-        (panel["fire_in_year"] == 1)
+        (panel["has_high_sev_fire"] == 1)
         & (panel["year"] >= TREAT_YEAR_MIN)
         & (panel["year"] <= TREAT_YEAR_MAX)
     ).astype(int)
 
-    # g: C&S group variable — first post-treatment quinquennial CoG census year.
-    # g=2017 for first fire 2013-2016; g=2022 for first fire 2017-2021; 0 if never.
+    # g: intensive-margin cohort — first CoG census year after first high-severity fire.
     first_treated = (
         panel[panel["treated"] == 1]
         .groupby("fips")["year"]
@@ -228,6 +243,27 @@ def build_county_year_panel(
     )
     panel = panel.merge(first_treated[["fips", "g"]], on="fips", how="left")
     panel["g"] = panel["g"].fillna(0).astype(int)
+
+    # --- Extensive margin treatment: any qualifying fire (≥1,000 acres) ---
+    panel["treated_any"] = (
+        (panel["fire_in_year"] == 1)
+        & (panel["year"] >= TREAT_YEAR_MIN)
+        & (panel["year"] <= TREAT_YEAR_MAX)
+    ).astype(int)
+
+    # g_any: extensive-margin cohort — first CoG census year after first qualifying fire.
+    first_any = (
+        panel[panel["treated_any"] == 1]
+        .groupby("fips")["year"]
+        .min()
+        .rename("first_any_year")
+        .reset_index()
+    )
+    first_any["g_any"] = np.where(
+        first_any["first_any_year"] <= COG_COHORT_2017_MAX, 2017, 2022
+    )
+    panel = panel.merge(first_any[["fips", "g_any"]], on="fips", how="left")
+    panel["g_any"] = panel["g_any"].fillna(0).astype(int)
 
     # Pre-2013 fire history (2000-2012): matching covariate.
     # Consistent with WFP 2012 predetermination (history through end of 2012).
@@ -297,12 +333,15 @@ def main() -> None:
     n_g2017  = panel[panel["g"] == 2017]["fips"].nunique()
     n_g2022  = panel[panel["g"] == 2022]["fips"].nunique()
     n_never  = panel[panel["g"] == 0]["fips"].nunique()
+    n_any_fire = panel[panel["g"].isin([2017, 2022])]["fips"].nunique()
     print(
-        f"\nMTBS county panel: {len(panel):,} county-years\n"
-        f"  g=2017 (fires 2013-2016): {n_g2017} counties\n"
-        f"  g=2022 (fires 2017-2021): {n_g2022} counties\n"
-        f"  Never treated (g=0):      {n_never} counties\n"
-        f"  Smoke-excluded (any year): {panel['smoke_buffer_excl'].sum():,} county-years"
+        f"\nMTBS county panel (SEVERITY-BASED TREATMENT): {len(panel):,} county-years\n"
+        f"  Treatment = fires with detectable High-severity class (HIGH_THRES in 100-5000)\n"
+        f"  g=2017 (sev. fires 2013-2016): {n_g2017} counties\n"
+        f"  g=2022 (sev. fires 2017-2021): {n_g2022} counties\n"
+        f"  Never treated (g=0):           {n_never} counties\n"
+        f"  Total treated:                 {n_any_fire} counties\n"
+        f"  Smoke-excluded (any year):     {panel['smoke_buffer_excl'].sum():,} county-years"
     )
 
 

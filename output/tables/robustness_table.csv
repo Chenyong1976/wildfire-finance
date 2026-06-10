@@ -1,0 +1,16 @@
+"outcome","spec","att","se","ci_lo","ci_hi","p_value","signif","n_treated","n_ctrl"
+"fiscal_balance_pc","(0) Baseline",-277.5,246.2,-760,205.1,0.26,"",246,98
+"fiscal_balance_pc","(1) Not-yet-treated",-379.4,448.1,-1257.6,498.8,0.397,"",246,98
+"fiscal_balance_pc","(2) Drop outliers",-277.5,251.4,-770.1,215.2,0.27,"",246,98
+"fiscal_balance_pc","(3) 6-state (no CO/UT)",-277.5,236.9,-741.8,186.9,0.242,"",221,94
+"fiscal_balance_pc","(4) WHP 2014 xformla",-262.9,249.4,-751.8,225.9,0.292,"",246,98
+"rev_total_pc","(0) Baseline",-324.7,318.7,-949.3,299.8,0.308,"",246,98
+"rev_total_pc","(1) Not-yet-treated",-361.7,460.5,-1264.2,540.9,0.432,"",246,98
+"rev_total_pc","(2) Drop outliers",-324.7,321.2,-954.2,304.8,0.312,"",246,98
+"rev_total_pc","(3) 6-state (no CO/UT)",-324.7,321.9,-955.6,306.1,0.313,"",221,94
+"rev_total_pc","(4) WHP 2014 xformla",-335.5,345.3,-1012.2,341.2,0.331,"",246,98
+"exp_capital_pc","(0) Baseline",-181.4,115.6,-407.9,45.2,0.117,"",246,98
+"exp_capital_pc","(1) Not-yet-treated",-118.5,78,-271.3,34.3,0.129,"",246,98
+"exp_capital_pc","(2) Drop outliers",-181.4,121.8,-420.1,57.4,0.137,"",246,98
+"exp_capital_pc","(3) 6-state (no CO/UT)",-181.4,114.2,-405.2,42.5,0.112,"",221,94
+"exp_capital_pc","(4) WHP 2014 xformla",-154.9,106.8,-364.2,54.4,0.147,"",246,98

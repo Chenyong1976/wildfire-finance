@@ -1,0 +1,15 @@
+"outcome","group","att","se","p_value"
+"rev_total_pc",2017,-248.6,348.9,0.476
+"rev_total_pc",2022,-706.5,1340.2,0.598
+"rev_proptax_pc",2017,-29.5,120.4,0.806
+"rev_proptax_pc",2022,-856.1,1369,0.532
+"rev_intergovt_pc",2017,-111.1,179.3,0.536
+"rev_intergovt_pc",2022,-39.3,53.1,0.459
+"exp_total_pc",2017,-88.3,339.6,0.795
+"exp_total_pc",2022,158.4,270.5,0.558
+"exp_capital_pc",2017,-215.1,140.5,0.126
+"exp_capital_pc",2022,-12.3,43.7,0.778
+"fiscal_balance_pc",2017,-160.4,221.3,0.469
+"fiscal_balance_pc",2022,-864.9,1427.3,0.545
+"debt_lt_pc",2017,786.6,1118.3,0.482
+"debt_lt_pc",2022,431,292.5,0.141
