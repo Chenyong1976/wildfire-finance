@@ -114,8 +114,8 @@ for (y in outcomes) {
       ## v0.0.9 API: synthdid_estimate(Y, N0, T0) — no W argument.
       ## panel.matrices already orders Y so rows 1:N0 are controls, cols 1:T0 pre-treatment.
       est <- synthdid_estimate(setup$Y, setup$N0, setup$T0)
-      ## Bootstrap SE (n=500, unit-level)
-      se_val  <- sqrt(vcov(est, method = "bootstrap", replications = 500))
+      ## Jackknife SE — leave-one-control-out; faster than bootstrap for large N0
+      se_val  <- sqrt(vcov(est, method = "jackknife"))
       att_val <- as.numeric(est)
       pv      <- 2 * pnorm(-abs(att_val / se_val))
       cohort_ests[[as.character(g)]] <- list(
@@ -177,12 +177,12 @@ for (i in seq_len(nrow(sdid_tbl))) {
               r$outcome, r$att, r$se, r$ci_lo, r$ci_hi, r$p_value, r$signif))
 }
 cat(paste(rep("-", 78), collapse = ""), "\n")
-cat("Note: synthdid (Arkhangelsky et al. 2021); bootstrap SE (n=500).\n")
+cat("Note: synthdid (Arkhangelsky et al. 2021); jackknife SE.\n")
 cat("      Pooled across cohorts g=2017, g=2022 with cohort-size weights.\n\n")
 
 writeLines(capture.output({
   cat("Synthetic DiD ATT — Wildfire Finance\n")
-  cat("Estimator: Arkhangelsky et al. (2021); bootstrap SE replications=500\n")
+  cat("Estimator: Arkhangelsky et al. (2021); jackknife SE (leave-one-control-out)\n")
   cat("Staggered: cohort-specific estimates pooled with cohort-size weights\n\n")
   cat(sprintf("%-22s  %8s  %7s  %14s  %7s  %5s\n",
               "Outcome", "ATT ($)", "SE", "95% CI", "p-val", "Sig"))

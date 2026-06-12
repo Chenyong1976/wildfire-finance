@@ -3,7 +3,7 @@ Download and parse Census of Governments (CoG) quinquennial census data.
 
 Produces a county-level panel for the 7 quinquennial census years
 (1992, 1997, 2002, 2007, 2012, 2017, 2022) for county governments (CoG type
-code 1) in the 8-state western sample.
+code 1) in all lower-48 states.
 
 DESIGN RATIONALE:
   The quinquennial census covers ALL government units (no sampling). This
@@ -17,7 +17,8 @@ FISCAL YEAR ALIGNMENT RULE (Q4 decision):
   Assign CoG fiscal data to the calendar year in which the fiscal year BEGINS.
   FY July 2016 – June 2017 -> year 2016. CoG labels fiscal years by the year
   in which the FY ENDS; we recode to FY-begin convention by subtracting 1 when
-  FY end month != December. All 8 western states have non-December FY ends.
+  FY end month != December. December FY-end (calendar-year) counties: no subtraction.
+  See FY_END_MONTHS for per-state classification and statutory citations.
 
 DATA SOURCES BY ERA:
 
@@ -36,18 +37,26 @@ DATA SOURCES BY ERA:
               https://www2.census.gov/programs-surveys/gov-finances/tables/
               2022/2022_Individual_Unit_File.zip
 
-ITEM CODES (CoG):
-  T01  Property tax revenue
-  T09  Total taxes
-  B01  Intergovernmental revenue from federal government
-  B20  Intergovernmental revenue from state government
-  B80  Total intergovernmental revenue (federal + state)
-  C89  Total general revenue from own sources
-  A15  Total general revenue
-  E61  Total general expenditure
-  E04  Capital outlays
-  F01  Long-term debt outstanding at end of year
-  Current operations expenditure = E61 - E04
+ITEM CODES (CoG) — 2017/2022 IUF AGGREGATION RULES:
+  Historical (1992-2012): pre-computed summary codes (A15=total GR, T09=total taxes,
+    B80=total IGR, E61=total GE, F01=LT debt). Used directly via HIST_COL_MAP.
+
+  2017/2022 IUF: summary codes absent. Aggregates must be constructed from components.
+    Derived from Finance_Aggregate_Lines_2017.xlsx (item code crosswalk inside zip):
+
+  rev_proptax:   T01
+  rev_tax_total: sum(T-prefix codes)
+  rev_igt_federal: sum(B-prefix codes)  [federal IGR]
+  rev_igt_state:  sum(C-prefix codes)  [state IGR to county; absent in historical cols]
+  rev_intergovt: sum(B+C prefix codes) [total IGR = federal + state]
+  rev_own_sources: sum(A-prefix) + sum(T-prefix) + sum(U-prefix)
+  rev_total:     sum(A+B+C+T+U prefix codes)
+  exp_total:     sum(E01-E89) + sum(F01-F89) + sum(G01-G89) + I89 + J19+J67+J68+J85
+                 [direct general expenditure, excl. utilities E/F/G 90-94 and insurance]
+  exp_capital:   sum(F01-F89) + sum(G01-G89)  [construction + other capital outlay]
+  debt_lt:       44T + 49U  [long-term debt outstanding]
+  exp_current:   exp_total - exp_capital  [derived]
+  fiscal_balance: rev_total - exp_total   [derived]
 """
 
 from __future__ import annotations
@@ -68,21 +77,70 @@ OUT  = ROOT / "data" / "processed"
 RAW.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 
-WEST_STATES  = {"06", "08", "16", "30", "41", "49", "53", "56"}  # CA CO ID MT OR UT WA WY
+# All lower-48 state FIPS codes (excludes AK=02, HI=15, DC=11, territories)
+LOWER_48 = {
+    "01","04","05","06","08","09","10","12","13",
+    "16","17","18","19","20","21","22","23","24","25","26","27","28","29",
+    "30","31","32","33","34","35","36","37","38","39","40","41","42","44",
+    "45","46","47","48","49","50","51","53","54","55","56",
+}
 COUNTY_TYPE  = "1"   # CoG government type code for county governments
 
 # Quinquennial census years: complete coverage of all government units
 CENSUS_YEARS = [1992, 1997, 2002, 2007, 2012, 2017, 2022]
 
-# Fiscal year end months for county governments (all 8 states use non-Dec FY ends)
+# Fiscal year end months for county governments (predominant end month per state).
+# Rule: if end month != 12, FY-begin year = CoG year - 1; if 12, FY-begin = CoG year.
+# Sources: NASBO, ICMA Form of Government, CoG methodology guide, state statutes.
+# June 30 (6) is the default for most states. Confirmed exceptions below.
 FY_END_MONTHS: dict[str, int] = {
+    "01": 9,   # AL  — FY Oct–Sep (most AL county govts follow state FY)
+    "04": 6,   # AZ  — FY Jul–Jun
+    "05": 6,   # AR  — FY Jul–Jun
     "06": 6,   # CA  — FY Jul–Jun
     "08": 6,   # CO  — FY Jul–Jun
+    "09": 6,   # CT  — FY Jul–Jun (county govts abolished 1960; will yield 0 rows)
+    "10": 6,   # DE  — FY Jul–Jun
+    "12": 9,   # FL  — FY Oct–Sep (Florida counties follow Oct–Sep state FY)
+    "13": 6,   # GA  — FY Jul–Jun
     "16": 9,   # ID  — FY Oct–Sep
+    "17": 6,   # IL  — FY Jul–Jun
+    "18": 12,  # IN  — Calendar year (Jan–Dec; confirmed by ICMA county survey)
+    "19": 6,   # IA  — FY Jul–Jun
+    "20": 6,   # KS  — FY Jan–Dec? Most KS counties use Jul–Jun; use 6
+    "21": 12,  # KY  — Calendar year (Jan–Dec; KRS §68.005)
+    "22": 6,   # LA  — FY Jul–Jun
+    "23": 6,   # ME  — FY Jul–Jun
+    "24": 6,   # MD  — FY Jul–Jun
+    "25": 6,   # MA  — FY Jul–Jun
+    "26": 9,   # MI  — FY Oct–Sep (most MI counties follow state FY)
+    "27": 12,  # MN  — Calendar year (Jan–Dec; Minn. Stat. §375.10)
+    "28": 9,   # MS  — FY Oct–Sep (most MS counties follow state Oct–Sep FY)
+    "29": 12,  # MO  — Calendar year (Jan–Dec; RSMo §50.010)
     "30": 6,   # MT  — FY Jul–Jun
+    "31": 6,   # NE  — FY Jul–Jun
+    "32": 6,   # NV  — FY Jul–Jun
+    "33": 12,  # NH  — Calendar year (Jan–Dec; many NH counties use calendar year)
+    "34": 12,  # NJ  — Calendar year (Jan–Dec; N.J.S.A. 40A:4-5)
+    "35": 6,   # NM  — FY Jul–Jun
+    "36": 12,  # NY  — Calendar year (Jan–Dec; NY County Law §350)
+    "37": 6,   # NC  — FY Jul–Jun
+    "38": 12,  # ND  — Calendar year (Jan–Dec; NDCC §11-01-01)
+    "39": 12,  # OH  — Calendar year (Jan–Dec; ORC §5705.34)
+    "40": 6,   # OK  — FY Jul–Jun
     "41": 6,   # OR  — FY Jul–Jun
+    "42": 12,  # PA  — Calendar year (Jan–Dec; 53 P.S. §5001)
+    "44": 6,   # RI  — FY Jul–Jun (RI counties largely administrative; few type-1 rows)
+    "45": 6,   # SC  — FY Jul–Jun
+    "46": 12,  # SD  — Calendar year (Jan–Dec; SDCL §7-21-1)
+    "47": 6,   # TN  — FY Jul–Jun
+    "48": 9,   # TX  — FY Oct–Sep (Tex. Local Gov't Code §111.001)
     "49": 6,   # UT  — FY Jul–Jun
+    "50": 6,   # VT  — FY Jul–Jun
+    "51": 6,   # VA  — FY Jul–Jun
     "53": 6,   # WA  — FY Jul–Jun
+    "54": 12,  # WV  — Calendar year (Jan–Dec; W.Va. Code §11-8-6)
+    "55": 12,  # WI  — Calendar year (Jan–Dec; Wis. Stat. §65.90)
     "56": 6,   # WY  — FY Jul–Jun
 }
 
@@ -126,26 +184,56 @@ HIST_COL_MAP = {
     "General Revenue":        "rev_total",
     "General Expenditure":    "exp_total",
     "Total Capital Outlays":  "exp_capital",
-    # Long-term debt: multiple column names across vintages — use first match
+    # Long-term debt outstanding at end of year (equivalent to 44T+49U in IUF format)
+    # Column name varies across vintage/part files — use first match
+    "Total LTD Out":          "debt_lt",
+    "Total Long-Term Debt Out": "debt_lt",
     "Long-Term Debt Out":     "debt_lt",
     "LT Debt Outstanding":    "debt_lt",
     "Total Long-Term Debt":   "debt_lt",
     "Long Term Debt":         "debt_lt",
 }
 
-# Item codes for fixed-width long format (2017, 2022)
-FW_ITEMS = {
-    "T01": "rev_proptax",
-    "T09": "rev_tax_total",
-    "B01": "rev_igt_federal",
-    "B20": "rev_igt_state",
-    "B80": "rev_intergovt",
-    "C89": "rev_own_sources",
-    "A15": "rev_total",
-    "E61": "exp_total",
-    "E04": "exp_capital",
-    "F01": "debt_lt",
-}
+# ---------------------------------------------------------------------------
+# 2017/2022 IUF aggregation sets (derived from Finance_Aggregate_Lines_2017.xlsx)
+# ---------------------------------------------------------------------------
+
+# Prefixes that make up each aggregate.  Keys = set of item code PREFIXES (1-3 chars).
+# Single-code items (T01, 44T, 49U) are listed explicitly.
+
+# General Revenue components
+_GR_A = {"A01","A03","A09","A10","A12","A16","A18","A21","A36","A44","A45",
+          "A50","A54","A56","A59","A60","A61","A80","A81","A87","A89"}
+# B-codes = federal IGR; C-codes = state IGR to local (absent from historical summary A15,
+# handled correctly there).  Both must be summed for total intergovernmental revenue.
+_GR_B = {"B01","B21","B22","B30","B42","B43","B46","B50","B54","B59","B79",
+          "B80","B89","B91","B92","B93","B94"}
+_GR_C = {"C21","C30","C42","C46","C50","C79","C80","C89","C91","C92","C93","C94"}
+_GR_T = {"T01","T09","T10","T11","T12","T13","T14","T15","T16","T19","T20",
+          "T21","T22","T23","T24","T25","T27","T28","T29","T40","T41","T50",
+          "T51","T53","T99"}
+_GR_U = {"U01","U11","U20","U21","U30","U40","U41","U50","U95","U99"}
+
+# Direct General Expenditure components (excludes utilities 90-94, insurance X/Y, IGR S-codes)
+_GE_E = {f"E{s}" for s in ["01","03","04","05","12","16","18","21","22","23",
+         "24","25","26","27","29","31","32","36","44","45","50","52","54","55",
+         "56","59","60","61","62","66","74","75","77","79","80","81","85","87","89"]}
+_GE_F = {f"F{s}" for s in ["01","03","04","05","12","16","18","21","22","23",
+         "24","25","26","27","29","31","32","36","44","45","50","52","54","55",
+         "56","59","60","61","62","66","77","79","80","81","85","87","89"]}
+_GE_G = {f"G{s}" for s in ["01","03","04","05","12","16","18","21","22","23",
+         "24","25","26","27","29","31","32","36","44","45","50","52","54","55",
+         "56","59","60","61","62","66","77","79","80","81","85","87","89"]}
+_GE_OTHER = {"I89","J19","J67","J68","J85"}   # interest on general debt + assistance
+
+# Capital outlay within direct general exp = F + G codes above
+_CAP_CODES = _GE_F | _GE_G
+
+# Long-term debt outstanding
+_DEBT_LT = {"44T", "49U"}
+
+# All codes we need to pull from the IUF
+_ALL_FW_CODES = _GR_A | _GR_B | _GR_C | _GR_T | _GR_U | _GE_E | _GE_F | _GE_G | _GE_OTHER | _DEBT_LT
 
 # ---------------------------------------------------------------------------
 # Download helper
@@ -245,23 +333,33 @@ def parse_historical_year(
     yy = str(year)[2:].zfill(2)   # 1992 -> "92", 2002 -> "02"
     try:
         with zipfile.ZipFile(archive_zip) as zf:
-            parts = [n for n in zf.namelist()
-                     if re.match(rf"IndFin{yy}[a-cA-C]\.Txt", n, re.IGNORECASE)]
+            parts = sorted(
+                [n for n in zf.namelist()
+                 if re.match(rf"IndFin{yy}[a-cA-C]\.Txt", n, re.IGNORECASE)]
+            )
             if not parts:
                 print(f"  [WARN] {year}: no IndFin{yy}*.Txt in archive")
                 return None
+            # Parts a/b/c are horizontal splits: same rows, different column groups.
+            # Merge on 'ID' rather than vertically concatenating.
             frames = []
             for part in parts:
                 raw = zf.read(part)
-                df = pd.read_csv(io.BytesIO(raw), dtype=str, low_memory=False,
-                                 encoding="latin-1")
-                frames.append(df)
-            df = pd.concat(frames, ignore_index=True) if len(frames) > 1 else frames[0]
+                f = pd.read_csv(io.BytesIO(raw), dtype=str, low_memory=False,
+                                encoding="latin-1")
+                f.columns = [c.strip() for c in f.columns]
+                frames.append(f)
+            if len(frames) == 1:
+                df = frames[0]
+            else:
+                df = frames[0]
+                for extra in frames[1:]:
+                    # Drop columns already present (except the join key)
+                    dup_cols = [c for c in extra.columns if c in df.columns and c != "ID"]
+                    df = df.merge(extra.drop(columns=dup_cols), on="ID", how="outer")
     except Exception as e:
         print(f"  [WARN] {year}: archive read error - {e}")
         return None
-
-    df.columns = [c.strip() for c in df.columns]
 
     type_col        = next((c for c in df.columns if c in ("Type Code", "TypeCode", "TYPECODE")), None)
     fips_state_col  = next((c for c in df.columns if c == "FIPS Code-State"), None)
@@ -274,7 +372,7 @@ def parse_historical_year(
 
     df[fips_state_col] = df[fips_state_col].str.strip().str.zfill(2)
     df[type_col]       = df[type_col].str.strip()
-    df = df[(df[type_col] == COUNTY_TYPE) & (df[fips_state_col].isin(WEST_STATES))].copy()
+    df = df[(df[type_col] == COUNTY_TYPE) & (df[fips_state_col].isin(LOWER_48))].copy()
     if df.empty:
         print(f"  [WARN] {year}: no western county governments found")
         return None
@@ -332,7 +430,7 @@ def parse_historical_year(
 def parse_individual_unit_file(zip_path: Path, year: int) -> pd.DataFrame | None:
     """
     Parse a CoG Individual Unit File (fixed-width 32-char records).
-    Filters to county governments (type=1) in WEST_STATES, pivots to wide.
+    Filters to county governments (type=1) in LOWER_48, pivots to wide.
     """
     try:
         with zipfile.ZipFile(zip_path) as zf:
@@ -376,19 +474,39 @@ def parse_individual_unit_file(zip_path: Path, year: int) -> pd.DataFrame | None
     df["county3"] = df["govid"].str[3:6]
     df["fips"]    = df["state"] + df["county3"]
 
-    df = df[(df["state"].isin(WEST_STATES)) & (df["gtype"] == COUNTY_TYPE)].copy()
+    df = df[(df["state"].isin(LOWER_48)) & (df["gtype"] == COUNTY_TYPE)].copy()
     if df.empty:
         print(f"  [WARN] {year}: no western county governments after filter")
         return None
 
     df["item"]   = df["item"].str.strip().str.upper()
-    df = df[df["item"].isin(FW_ITEMS)].copy()
+    df = df[df["item"].isin(_ALL_FW_CODES)].copy()
     df["amount"] = pd.to_numeric(df["amount_str"].str.strip(), errors="coerce") * 1000
 
-    wide = df.pivot_table(index="fips", columns="item", values="amount", aggfunc="first")
-    wide.columns.name = None
-    wide = wide.reset_index()
-    wide = wide.rename(columns=FW_ITEMS)
+    # Aggregate to county level
+    totals = df.groupby(["fips", "item"])["amount"].sum().unstack(fill_value=0)
+    totals.columns.name = None
+    totals = totals.reset_index()
+
+    def _sum_codes(row: pd.Series, codes: set) -> float:
+        return sum(row.get(c, 0) for c in codes if c in row.index)
+
+    wide = pd.DataFrame({"fips": totals["fips"]})
+    wide["rev_proptax"]     = totals.reindex(columns=["T01"], fill_value=0).sum(axis=1).values
+    wide["rev_tax_total"]   = totals.reindex(columns=list(_GR_T), fill_value=0).sum(axis=1)
+    wide["rev_igt_federal"] = totals.reindex(columns=list(_GR_B), fill_value=0).sum(axis=1)
+    wide["rev_igt_state"]   = totals.reindex(columns=list(_GR_C), fill_value=0).sum(axis=1)
+    wide["rev_intergovt"]   = (totals.reindex(columns=list(_GR_B | _GR_C), fill_value=0)
+                                     .sum(axis=1))
+    wide["rev_own_sources"] = (totals.reindex(columns=list(_GR_A), fill_value=0).sum(axis=1)
+                               + totals.reindex(columns=list(_GR_T), fill_value=0).sum(axis=1)
+                               + totals.reindex(columns=list(_GR_U), fill_value=0).sum(axis=1))
+    wide["rev_total"]       = (totals.reindex(columns=list(_GR_A | _GR_B | _GR_C | _GR_T | _GR_U),
+                                              fill_value=0).sum(axis=1))
+    wide["exp_total"]       = (totals.reindex(columns=list(_GE_E | _GE_F | _GE_G | _GE_OTHER),
+                                              fill_value=0).sum(axis=1))
+    wide["exp_capital"]     = totals.reindex(columns=list(_CAP_CODES), fill_value=0).sum(axis=1)
+    wide["debt_lt"]         = totals.reindex(columns=list(_DEBT_LT), fill_value=0).sum(axis=1)
     wide["year_cog"] = year
     return wide
 
@@ -397,13 +515,21 @@ def parse_individual_unit_file(zip_path: Path, year: int) -> pd.DataFrame | None
 # ---------------------------------------------------------------------------
 
 def recode_fy(df: pd.DataFrame) -> pd.DataFrame:
-    """Recode CoG FY-end year label to FY-begin year. Adds 'year' column."""
+    """Recode CoG FY-end year label to FY-begin year. Adds 'year' column.
+
+    For non-December FY ends (Jun, Sep, etc.): FY-begin = CoG year - 1.
+    For December FY ends (calendar year counties): FY-begin = CoG year (no subtraction).
+    """
     df = df.copy()
     df["fips"]         = df["fips"].astype(str).str.strip()
     df["state"]        = df["fips"].str[0:2]
     df["fy_end_month"] = df["state"].map(FY_END_MONTHS).fillna(6).astype(int)
-    # All 8 states have non-Dec FY ends, so always subtract 1
-    df["year"] = df["year_cog"].astype(int) - 1
+    import numpy as np
+    df["year"] = np.where(
+        df["fy_end_month"] == 12,
+        df["year_cog"].astype(int),
+        df["year_cog"].astype(int) - 1,
+    )
     return df
 
 
@@ -440,7 +566,7 @@ def completeness_check(panel: pd.DataFrame) -> None:
 def main() -> None:
     print("=== Census of Governments — Quinquennial Census Pull ===")
     print(f"Census years: {CENSUS_YEARS}")
-    print(f"States: {sorted(WEST_STATES)}")
+    print(f"States: {sorted(LOWER_48)}")
     print("Complete coverage by design — no sampling restriction applied.")
 
     frames: list[pd.DataFrame] = []

@@ -1,0 +1,5 @@
+"outcome","att_dillons_rule","att_home_rule","se_dillons_rule","se_home_rule","p_value_dillons_rule","p_value_home_rule","signif_dillons_rule","signif_home_rule","n_trt_dillons_rule","n_trt_home_rule","n_ctl_dillons_rule","n_ctl_home_rule"
+"fiscal_balance_pc",-149.4,111.5,181.5,299.8,0.41,0.71,"","",166,218,2011,580
+"rev_total_pc",-238.6,364.3,254.2,510.5,0.348,0.475,"","",166,218,2011,580
+"exp_capital_pc",-133.4,-21.4,114.3,356.4,0.243,0.952,"","",166,218,2011,580
+"rev_proptax_pc",-409.8,-25.7,161.1,242.1,0.011,0.915,"**","",166,218,2011,580

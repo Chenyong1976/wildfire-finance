@@ -1,7 +1,7 @@
 # Research Plan: Wildfire Incidence and Local Public Finance
 
-**Version**: 0.4 (redesigned: quinquennial-only, 1992–2022, WHP 2012)
-**Last updated**: 2026-06-09
+**Version**: 0.7 (all analyses complete; paper draft with 8 tables + home rule; June 2026)
+**Last updated**: 2026-06-10
 
 ---
 
@@ -143,23 +143,32 @@ g=2022 cohort to fires 2017–2019 and treating 2020–2021 fire counties as exc
 
 ## 4. Sample
 
-- **States**: CA, OR, WA, ID, MT, WY, CO, UT (8 Pacific-Coast/Rockies states;
-  desert Southwest excluded for ecological homogeneity — AZ, NV, NM excluded)
-- **Period**: 1992–2022 (**quinquennial CoG census years only**: 1992, 1997, 2002,
-  2007, 2012, 2017, 2022). Annual Survey years ignored. FY-begin recoded years:
-  1991, 1996, 2001, 2006, 2011, 2016, 2021.
+- **States**: All lower-48 states (~3,000 counties). Expanded from the original 8-state
+  western sample (CA, OR, WA, ID, MT, WY, CO, UT) in June 2026. AK, HI, DC excluded.
+  Western 8-state subsample retained as a robustness check for ecological homogeneity.
+- **Period**: 2002–2022 (**quinquennial CoG census years only**: 2002, 2007, 2012,
+  2017, 2022). Annual Survey years ignored. FY-begin recoded years vary by state
+  FY end month (June, September, or December/calendar year). 1992 and 1997 dropped:
+  1990 Census not in Census REST API.
+  Pre-treatment periods: 2002, 2007, 2012. Post-treatment periods: 2017, 2022.
+- **FY alignment note**: December FY-end states (IN, KY, MN, MO, NH, NJ, ND, NY, OH,
+  PA, SD, WV, WI) assign CoG year directly as FY-begin year (no recoding). All other
+  states subtract 1 (June or September FY ends). See `FY_END_MONTHS` in `03_cog_finance_pull.py`.
 - **Treatment cohorts**:
-  - g=2017: first qualifying fire in 2013–2016 (treated in CoG 2017 census year)
-  - g=2022: first qualifying fire in 2017–2021 (treated in CoG 2022 census year)
+  - g=2017: first qualifying fire in 2013–2016 (treated in CoG 2017 census year);
+    post-treatment observations at 2017 and 2022
+  - g=2022: first qualifying fire in 2017–2021 (treated in CoG 2022 census year);
+    post-treatment observation at 2022 only
 - **Control counties**: never treated (no qualifying MTBS fire ≥1,000 acres in
-  2015–2021); smoke buffer exclusion at 100 km (baseline). **Current sample: 55
-  never-treated counties** (16% of the 344-county CoG panel). Thin common support
-  is expected and must be documented; ESS of reweighted control group is a key
-  diagnostic (see §7).
+  2013–2021); smoke buffer exclusion at 100 km (baseline). National expansion greatly
+  expands never-treated pool (many eastern counties have no large wildfire history).
+  ESS of reweighted control group remains a key diagnostic (see §7).
 - **Population restriction**: counties with population ≥ 1,000 in every year
 - **CoG coverage**: complete by design — quinquennial census covers all government
-  units. No coverage restriction required. Current panel: **344 counties × 7 years
-  = 2,408 observations** (all counties in all 7 census years).
+  units. No coverage restriction required. National panel: **~3,000 counties × 5 years
+  ≈ 15,000 observations** (all lower-48 county governments in all 5 census years).
+  Note: CT county governments abolished 1960 (no type=1 rows); RI counties largely
+  administrative. Virginia independent cities excluded (not county governments).
 - **Unit of analysis**: county government only (CoG type code 1)
 - **Fiscal year alignment**: assign CoG fiscal year data to the calendar year in
   which the fiscal year begins (FY July 2016–June 2017 → year 2016)
@@ -178,23 +187,24 @@ county governments (type=1) and cannot be included in the fiscal analysis.
 **Source**: Census of Governments quinquennial census (years ending in 2 and 7).
 Complete coverage of all government units — no sampling. No coverage restriction required.
 
-**Years used**: 1992, 1997, 2002, 2007, 2012, 2017, 2022.
+**Years used**: 2002, 2007, 2012, 2017, 2022 (analysis panel). CoG raw data spans
+1992–2022; 1992 and 1997 are parsed but excluded from analysis panel.
 
 **Archive sources**:
-- 1992–2012: `_IndFin_1967-2012.zip` (wide CSV format)
+- 1992–2012: `_IndFin_1967-2012.zip` (wide CSV; parts a/b/c are horizontal splits
+  merged on ID, not concatenated vertically)
 - 2017, 2022: Individual Unit Files (32-char fixed-width, `tables/{year}/`)
 
-**FIPS crosswalk**: historical archive (1992–2012) uses sequential county numbering
-and alphabetical state codes. County FIPS codes are recovered by matching normalized
-county names to the Census national county reference file (`national_county.txt`).
+**FIPS crosswalk**: historical archive uses name-based matching to `national_county.txt`.
 
-**Current panel**: 344 counties × 7 census years = 2,408 county-year observations.
-All 344 counties present in all 7 years. Montana consolidated city-counties excluded
-(not coded as county governments in CoG type=1 records).
+**Current panel**: ~2,975 counties × 5 census years ≈ 14,875 county-year observations
+(all lower-48 county governments). Montana consolidated city-counties excluded.
 
-**Item codes used**: T01 (property tax), T09 (total taxes), B01 (fed IGR), B20 (state IGR),
-B80 (total IGR), C89 (own-source general revenue), A15 (total general revenue),
-E61 (total general expenditure), E04 (capital outlays), F01 (long-term debt outstanding).
+**2017/2022 item code aggregation** (summary codes absent in IUF format):
+- rev_total = sum(A + B + C + T + U prefix codes)  [B=federal IGR, C=state IGR]
+- exp_total = sum(E01–E89, F01–F89, G01–G89, I89, J19/J67/J68/J85)
+- debt_lt   = 44T + 49U
+- rev_proptax = T01; exp_capital = sum(F01–F89, G01–G89)
 
 ### 5.2 Fire and Hazard Data
 
@@ -208,9 +218,9 @@ E61 (total general expenditure), E04 (capital outlays), F01 (long-term debt outs
   MTBS minimum threshold: ≥1,000 acres.
 - Treatment assignment: first qualifying fire per county in 2013–2021. Groups:
   g=2017 for fires 2013–2016; g=2022 for fires 2017–2021; g=0 for never treated.
-- **Cohort counts** (from re-run with 2013–2021 treatment window):
-  g=2017 (fires 2013–2016): 208 counties; g=2022 (fires 2017–2021): 85 counties;
-  never-treated (g=0): 56 counties. Total: 349 counties.
+- **Cohort counts** (national lower-48, intensive margin):
+  g=2017 (fires 2013–2016): 267 counties; g=2022 (fires 2017–2021): 117 counties;
+  never-treated: 2,591 counties. Extensive margin: 629 / 255 / 2,091.
 - Smoke buffer parquets: `data/processed/fire_perimeters_100km_buffer.parquet`.
 
 ### 5.3 FEMA Disaster Declarations
@@ -317,7 +327,8 @@ support is expected to improve but should be verified.
 | Trim extreme fiscal outliers | Sensitivity to unusual CoG records |
 | **Home rule heterogeneity** | Interact treatment with home rule status; test whether fiscal response magnitude or recovery speed differs by institutional authority |
 | **Dillon's Rule heterogeneity** | Symmetric check using state-level Dillon's Rule classification |
-| Desert Southwest subsample | Exclude AZ, NV, NM to test sensitivity to ecological heterogeneity (if all 11 states used) |
+| **Western-8 subsample** | Restrict to original CA/CO/ID/MT/OR/UT/WA/WY sample — tests sensitivity to national expansion and ecological heterogeneity |
+| Regional heterogeneity | Census division FEs or region-interacted estimates to test whether eastern/western fire regimes produce different fiscal effects |
 
 ---
 
@@ -327,8 +338,8 @@ All questions resolved 2026-06-09.
 
 | # | Question | Decision |
 |---|---|---|
-| Q1 | Study area | **8 states**: CA, OR, WA, ID, MT, WY, CO, UT. Desert SW (AZ, NV, NM) excluded for ecological homogeneity. |
-| Q2 | CoG data source | **Quinquennial census years only** (1992, 1997, 2002, 2007, 2012, 2017, 2022). Annual Survey dropped — sampling gaps create endogenous attrition. Complete coverage by design; no coverage restriction required. |
+| Q1 | Study area | **All lower-48 states** (expanded June 2026). Original 8-state western sample (CA, OR, WA, ID, MT, WY, CO, UT) retained as robustness subsample for ecological homogeneity check. |
+| Q2 | CoG data source | **Quinquennial census years only** (2002, 2007, 2012, 2017, 2022 in analysis panel). 1992/1997 parsed but excluded — 1990 Census not in REST API, making pop denominators unreliable. Annual Survey dropped — sampling gaps create endogenous attrition. |
 | Q3 | Unit of analysis | **County government only** (CoG type code 1). Consistent with FIPS-level treatment assignment. |
 | Q4 | Fiscal year alignment | **Assign to year FY begins** (FY July 2016–June 2017 → year 2016). Aligns fiscal label with treatment cohort year; clean k = −1 pre-trend window. |
 | Q5 | Inflation deflator | **National CPI-U**. Consistent with public finance literature and companion health paper. |
@@ -337,48 +348,54 @@ All questions resolved 2026-06-09.
 | Q8 | FEMA aid | **Secondary outcome + robustness control**: (a) in the mechanism table as an outcome, (b) as a control in one robustness specification to isolate non-FEMA fiscal effects. |
 | Q9 | Headline estimand | **`fiscal_balance_pc`** (revenues minus expenditures per capita). Positions against Liao & Kousky (2022) — the only existing causal paper (California municipalities only). Leads with the policy-relevant net burden; `rev_proptax_pc` is the primary mechanism column. See `literature_review.md` §3. |
 | Q10 | Treatment window & WFP/WHP vintage | **Treatment window 2013–2021**. C&S groups: g=2017 (fires 2013–2016), g=2022 (fires 2017–2021). Primary matching variable: **WFP 2012** (USFS Wildfire Potential 2012; predetermined for fires from 2013 onward; finalized before 2013 fire season). WHP 2014 is robustness only — not predetermined for 2013–2014 fires. |
-| Q11 | Study period | **1992–2022** (quinquennial census years: 7 years of data). Pre-treatment window: 5 census observations (1992–2012). Post-treatment: up to 2 observations (2017, 2022) depending on cohort. |
+| Q11 | Study period | **2002–2022** (quinquennial census years: 5 years of data). Pre-treatment periods: 2002, 2007, 2012 (3 pre-treatment observations). Post-treatment: 2017 and 2022 for g=2017 cohort; 2022 only for g=2022 cohort. 1992/1997 excluded — 1990 Census unavailable via API. |
 
 ---
 
-## 10. Pending Tasks (Ordered)
+## 10. Task Log
 
-- [x] Answer design questions Q1–Q11 (done 2026-06-09)
-- [x] Literature review (`/deep-research`) — done 2026-06-09; see `literature_review.md`
-- [x] **Q9**: Headline estimand = `fiscal_balance_pc`. See `literature_review.md` §3.
-- [x] Collect home rule / Dillon's Rule data: state doctrine + county charter status
-      for CA, OR, WA, ID, MT, WY, CO, UT; done 2026-06-09 via `code/01_build/00_home_rule_compile.py`
-      Findings: 34–36 valid pre-2013 charter counties (CA:14, CO:2, MT:3*, OR:9, WA:6).
-      Clark County WA (charter 2015) excluded. Montana charter dates unconfirmed — verify
-      via MT Secretary of State before using in analysis. WY home rule is municipal only
-      (counties follow Dillon's Rule). UT home rule statewide by statute (no individual charters).
-      Primary heterogeneity: cross-state (home rule states vs. Dillon's Rule states: ID, WY).
-- [x] Document fiscal year end months for 8 western states; implement FY-begin recoding
-      in `code/01_build/03_cog_finance_pull.py` — done 2026-06-09.
-      All 8 states: June 30 FY end (month=6), except ID (September 30).
-      FY-begin recoding: CoG year → year-1 when FY end month < 12.
-- [x] **CoG data download — quinquennial census panel**: done 2026-06-09.
-      **Final panel**: 344 counties × 7 census years = 2,408 county-year observations.
-      All 344 counties present in all 7 census years (complete coverage by design).
-      FY-begin years: 1991, 1996, 2001, 2006, 2011, 2016, 2021.
-      FIPS crosswalk: name-based matching to Census national county file (national_county.txt).
-      Montana consolidated city-counties (30023 Deer Lodge, 30093 Silver Bow) excluded —
-      not coded as county governments (CoG type=1). WHP 2012 primary; WHP 2014 robustness.
-- [x] **WHP county intersection** — done 2026-06-09. WFP 2012 primary; WHP 2014 robustness.
-      Both columns output to `data/processed/whp_county.parquet` (349 counties, all positive).
-      Nodata fix applied (reads -2147483647 from raster metadata). Mean whp_2012 = 810, whp_2014 = 513.
-      Python env: `C:\Users\chenyon\AppData\Local\miniconda3\envs\rstools_ssmart`.
-- [x] **MTBS county intersection** — done 2026-06-09. Treatment window 2013–2021.
-      g=2017 (fires 2013–2016): 208 counties. g=2022 (fires 2017–2021): 85 counties.
-      Never-treated (g=0): 56 counties. Smoke-excluded: 5,761 county-years (100 km baseline).
-- [ ] Panel assembly: CPI-U deflation, outlier flagging (code/01_build/07_panel_assemble.py)
-- [ ] PS-IPW matching on WHP 2012 quintile + pre-2012 fiscal baselines + covariates
-- [ ] Balance table (code/02_matching/02_balance_table.R)
-- [ ] C&S main estimation with g=2017 / g=2022 cohorts (code/03_analysis/01_cs_main.R)
-- [ ] Event study: dynamic aggregation relative to quinquennial treatment year
-- [ ] Cohort-specific ATTs (g=2017 vs g=2022)
-- [ ] Home rule heterogeneity table
-- [ ] SDiD and Two-Stage DiD
-- [ ] Robustness: WHP 2014 vintage, 50 km smoke buffer, COVID robustness (restrict g=2022 to fires 2017–2019)
-- [ ] Verify Montana charter county dates via MT Secretary of State
-- [ ] Paper draft (`/academic-paper`)
+### Completed
+
+- [x] Answer design questions Q1–Q11 (2026-06-09)
+- [x] Literature review — see `literature_review.md`
+- [x] Home rule / Dillon's Rule data collection — national lower-48 state doctrine
+      (`home_rule_states.csv`) + confirmed pre-2015 charter counties (`home_rule_counties.csv`).
+      State counts: Dillon's Rule 2,177 counties, home rule 798 counties. Charter counties: 90.
+- [x] CoG data download — **national lower-48** quinquennial census panel (June 2026 expansion).
+      `data/processed/panel_final.parquet`: ~2,975 counties × 5 census years ≈ 14,875 obs.
+      FY-begin recoding applied for all 48 states (see `FY_END_MONTHS` in `03_cog_finance_pull.py`).
+- [x] WFP 2012 / WHP 2014 county intersection — `data/processed/whp_county.parquet`.
+- [x] MTBS county intersection — national treatment assignment (g=2017: 629 ext / 267 int;
+      g=2022: 255 ext / 117 int; never-treated: 2,091 ext / 2,591 int).
+- [x] Panel assembly with home rule columns — `code/01_build/07b_add_home_rule.py`.
+- [x] PS-IPW matching — `code/02_matching/01_ps_matching.R`. ESS = 122.1 (intensive).
+- [x] Balance table — `output/tables/balance_table.txt`; `code/02_matching/02_balance_table.R`.
+- [x] C&S main estimation (intensive + extensive) — `code/03_analysis/01_cs_main.R`;
+      output in `output/rds/cs_att_gt_*.rds` and `output/tables/cs_simple_agg*.csv`.
+- [x] Event study — `code/03_analysis/02_event_study.R`; `output/figures/event_study_*.pdf`.
+- [x] Cohort ATTs (g=2017 / g=2022) — `output/tables/group_time_atts.csv`.
+- [x] Robustness checks (8 specs incl. assessment-cycle subsamples) — `code/03_analysis/04_robustness.R`
+      + `07_assessment_cycle.R`; `output/tables/robustness_table.csv`, `assessment_cycle.csv`.
+- [x] Sun-Abraham estimator — `code/03_analysis/05_sun_abraham.R`; `output/tables/sun_abraham_table.csv`.
+- [x] Synthetic DiD — `output/tables/intergovt_synthdid.csv`; `output/rds/synthdid_*.rds`.
+- [x] Two-Stage DiD — `output/tables/stacked_did_table.csv`.
+- [x] Dose-response analysis — `output/tables/dose_response_*.csv`.
+- [x] Home rule / Dillon's Rule institutional heterogeneity — `code/03_analysis/06_home_rule_heterogeneity.R`;
+      `output/tables/home_rule_heterogeneity.csv`. Key result: property tax decline concentrated
+      in Dillon's Rule states (−$410, p=0.011); home rule states null (−$26, p=0.915).
+- [x] Assessment-cycle subgroup robustness — `code/03_analysis/07_assessment_cycle.R`;
+      `output/tables/assessment_cycle.csv`. Both subgroups null; confirms main finding not
+      driven by assessment timing. Annual subgroup power-constrained (n_ctl=30).
+- [x] Paper draft — `paper/wildfire_finance.tex`. 8 tables (+ Table A1 MDE):
+      Table 1 Balance, Table 2 Extensive main, Table 3 Intensive main,
+      Table 4 Cohort ATTs, Table 5 Robustness (8 specs), Table 6 Estimators,
+      Table 7 Dose-response, Table 8 Home rule heterogeneity, Table A1 MDE.
+      Four contributions; national sample (2,975 counties).
+
+### Not implemented (deferred)
+
+- [ ] COVID robustness: restrict g=2022 to fires 2017–2019 (deferred by user 2026-06-10)
+- [ ] Bacon decomposition (`code/03_analysis/06_cohort_bacon.R`)
+- [ ] Montana charter county date verification via MT Secretary of State (low priority;
+      MT counties excluded by `pre2015_valid == True` filter in current analysis)
+- [ ] HCUP hospitalization outcomes (separate health paper)

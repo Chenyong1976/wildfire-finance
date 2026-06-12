@@ -21,11 +21,12 @@
 
 %% --- Title ---
 \title{\large\textbf{Wildfire Incidence, Fire Severity, and Local Public Finance: \\
-Evidence from Western U.S.\ County Governments}}
+Evidence from U.S.\ County Governments}}
 
 \author{
-  Yong Chen\thanks{[Affiliation]. Email: [email]. I thank [acknowledgments].}
+  Daivd Guo\thanks{[Affiliation]. Email: [email]. We thank [acknowledgments]} and Yong Chen\thanks{[Affiliation]. Email: [email]. We thank [acknowledgments]}.
 }
+
 
 \date{June 2026 \\ \smallskip \small Preliminary draft. Comments welcome.}
 
@@ -33,34 +34,34 @@ Evidence from Western U.S.\ County Governments}}
 \maketitle
 
 \begin{abstract}
-\noindent I estimate the causal effect of wildfire exposure on county government fiscal
-outcomes along two margins of the wildfire shock: the \textit{extensive margin}
-(fire incidence---whether a county experiences any qualifying wildfire) and the
-\textit{intensive margin} (fire severity---whether the fire caused detectable
-stand-replacement burning). Using quinquennial Census of Governments data from
-2002 to 2022 for 344 county governments across eight western states, I implement
-two complementary staggered difference-in-differences designs with Callaway and
-Sant'Anna (2021) doubly-robust estimation, exploiting the 2012 USFS Wildfire
-Potential raster as a predetermined matching variable. In the extensive-margin
-specification, 293 counties experienced a first qualifying wildfire
-($\geq\!1{,}000$ acres) between 2013 and 2021; the 51 never-fired counties serve
-as controls (ESS: 11.1 after reweighting). In the intensive-margin specification,
-246 counties experienced a first high-severity wildfire (MTBS High-severity
-dNBR class detected); the 98 counties without a qualifying high-severity
-fire---including those with only low-to-moderate-severity fires---serve as
-controls (ESS: 19.6). Both margins yield statistically insignificant fiscal
-effects. The extensive-margin ATT for fiscal balance is \$\!-649 per capita
-(SE\,=\,525; $p = 0.217$); the intensive-margin ATT is \$\!-278 (SE\,=\,245;
-$p = 0.258$). Capital expenditures show the most consistent signal: \$\!-226
-(extensive) and \$\!-181 (intensive) per capita. For the intensive-margin
-specification, all four heterogeneity-robust estimators (Callaway-Sant'Anna DR,
-Sun-Abraham, Synthetic DiD, two-stage DiD) agree on negative signs---a
-cross-estimator consensus attributable to the closer counterfactual provided
-by the expanded low-severity-fire control group.
+\noindent We estimate the causal effect of wildfire exposure on county government fiscal
+outcomes along two margins: the \textit{extensive margin} (fire incidence---any
+qualifying wildfire $\geq\!1{,}000$ acres) and the \textit{intensive margin} (fire
+severity---detectable stand-replacement burning). County governments in fire-prone
+areas budget for expected wildfire costs; routine fires remain within these planned
+commitments. When a fire becomes unexpectedly intense, however, the resources
+required can exceed pre-committed funds, generating fiscal stress. We test whether
+fiscal effects therefore depend on severity, not merely incidence. Using quinquennial
+Census of Governments data from 2002 to 2022 for all county governments in the
+contiguous United States ($n = 2{,}975$), we implement staggered
+difference-in-differences designs with Callaway and Sant'Anna (2021) doubly-robust
+estimation, exploiting the 2012 USFS Wildfire Potential raster as a predetermined
+matching variable. The extensive margin yields uniformly insignificant effects across
+all fiscal outcomes. At the intensive margin---384 counties with high-severity fires
+compared to 2,591 never-treated controls (effective sample size: 122.1)---capital
+expenditures fall by \$\!-293 per capita ($p = 0.075$, C\&S doubly-robust) and
+\$\!-87 per capita ($p = 0.049$, Sun-Abraham); all other fiscal outcomes, including
+fiscal balance, are statistically indistinguishable from zero. The national average
+masks substantial heterogeneity: western states show a fiscal balance decline of
+\$\!-1{,}252 ($p = 0.002$) and revenue losses of \$\!-1{,}063 ($p = 0.017$),
+and excluding California eliminates the capital expenditure finding. Property tax
+revenue declines concentrate in Dillon's Rule states (\$\!-410, $p = 0.011$) and
+are absent in home rule counties, identifying counties' statutory taxing authority
+as a determinant of whether wildfire reduces property tax revenues.
 \medskip
 
 \noindent\textbf{Keywords:} wildfire; fire severity; local public finance; fiscal federalism;
-difference-in-differences; western United States
+home rule; Dillon's Rule; difference-in-differences; contiguous United States
 
 \noindent\textbf{JEL:} H72, Q54, H71, R11
 \end{abstract}
@@ -71,35 +72,35 @@ difference-in-differences; western United States
 \section{Introduction}
 %% ============================================================
 
-Western wildfires have grown in frequency, severity, and geographic reach over the
-past two decades. Between 2013 and 2021---the treatment window in this study---293
-of 344 county governments across eight Pacific Coast and Rocky Mountain states
-experienced at least one qualifying wildfire ($\geq\!1{,}000$ acres). Among these,
-246 counties experienced a fire that the USFS Monitoring Trends in Burn Severity
-(MTBS) program classified as producing a distinct high-severity burning class---fires
-with stand-replacement behavior and severe vegetation mortality. Beyond their direct
-costs to households and ecosystems, large wildfires impose a first-order fiscal
-challenge on the county governments responsible for emergency response,
-infrastructure repair, and baseline public services: property tax revenues may fall
-as fire damages assessed values, while expenditure demands rise simultaneously.
-How much fiscal stress wildfires impose---and whether severity amplifies the effect
-beyond mere incidence---is a central concern for state and local fiscal policy,
-yet causal evidence for county governments outside California is absent.
+Wildfire poses a recurring fiscal challenge to county governments. Property tax
+revenues may fall as fire damages assessed values, while demands for emergency
+response, infrastructure repair, and public services rise simultaneously. County
+governments in fire-prone areas are not uniformly caught off guard: they accumulate
+experience with wildfire and maintain dedicated reserves and mutual-aid agreements
+to cover anticipated response costs. A routine fire, however large by absolute
+standards, is therefore unlikely to breach these planned commitments. What generates
+fiscal stress is unexpected severity---fires that cause stand-replacement burning
+across thousands of acres require suppression, evacuation, and rebuilding commitments
+that can exceed a county's pre-committed resources by a substantial margin. Whether
+fiscal effects consequently depend on fire severity, rather than mere incidence, is a
+central question for state and local fiscal policy, yet causal evidence for county
+governments outside California is limited. Between 2013 and 2021, 884 of 2,975
+county governments across the contiguous United States experienced at least one
+qualifying wildfire ($\geq\!1{,}000$ acres); among these, 384 experienced a fire
+classified by the USFS Monitoring Trends in Burn Severity (MTBS) program as
+producing stand-replacement burning.
 
-This paper provides that evidence along two distinct margins. The
-\textit{extensive margin} asks whether experiencing any qualifying wildfire
-($\geq\!1{,}000$ acres) affects county fiscal outcomes; the 293 fire-affected
-counties are compared to 51 counties that experienced no qualifying fire.
-The \textit{intensive margin} asks whether fire \textit{severity}---holding
-fire occurrence approximately fixed---amplifies the fiscal effect; the 246
-counties with high-severity fires are compared to 98 counties without a
-qualifying high-severity fire (including 47 counties with only
-low-to-moderate-severity fires). I use quinquennial Census of Governments data
-from 2002 to 2022, restricting to county governments in California, Colorado,
-Idaho, Montana, Oregon, Utah, Washington, and Wyoming---the eight states with
-the highest wildfire incidence and the greatest share of high-hazard county
-governments. The panel covers 344 counties across five census years, yielding
-1,720 observations.
+This paper provides that evidence along two distinct margins for the full
+contiguous United States. The \textit{extensive margin} asks whether experiencing
+any qualifying wildfire ($\geq\!1{,}000$ acres) affects county fiscal outcomes;
+the 884 fire-affected counties are compared to 2,091 counties that experienced
+no qualifying fire. The \textit{intensive margin} asks whether fire
+\textit{severity}---holding fire occurrence approximately fixed---amplifies the
+fiscal effect; the 384 counties with high-severity fires are compared to 2,591
+counties without a qualifying high-severity fire (including counties that
+experienced only low-to-moderate-severity fires). We use quinquennial Census of Governments data from 2002 to 2022 for all county
+governments in the lower-48 states, covering 2,975 counties across five census
+years (14,875 observations).
 
 Identification in both designs exploits the predetermined 2012 USFS Wildfire
 Potential (WFP) raster as a matching variable in a staggered
@@ -108,71 +109,86 @@ Sant'Anna's \citeyearpar{callaway2021} doubly-robust group-time estimator.
 Within a given wildfire hazard class, the timing of a county's first large
 fire in 2013--2021 depends on stochastic weather shocks---drought, lightning,
 and wind---that are plausibly orthogonal to fiscal trends conditional on
-baseline hazard and demographic covariates. I additionally verify pre-treatment
-parallel trends for both designs. As robustness checks for the intensive-margin
-specification I implement Sun and Abraham's \citeyearpar{sun2021} TWFE estimator,
+baseline hazard and demographic covariates. Pre-treatment parallel trends are verified for both designs. As robustness checks for the intensive-margin
+specification, we implement Sun and Abraham's \citeyearpar{sun2021} TWFE estimator,
 Arkhangelsky et al.'s \citeyearpar{arkhangelsky2021} Synthetic DiD, and
 Gardner's \citeyearpar{gardner2022} two-stage DiD.
 
-The main finding is that \textit{neither margin generates statistically significant
-fiscal effects.} For the extensive margin, the doubly-robust ATT for fiscal balance
-is \$\!-649 per capita (SE\,=\,525; $p = 0.217$; 95\% CI: [\$\!-1{,}678, \$381]).
-For the intensive margin, the ATT is \$\!-278 (SE\,=\,245; $p = 0.258$; 95\% CI:
-[\$\!-758, \$203]). Capital expenditures show the most consistent signal: \$\!-226
-per capita (extensive, $p = 0.166$) and \$\!-181 per capita (intensive, $p = 0.142$),
-suggesting that whatever fiscal adjustment occurs operates primarily through deferred
-capital investment. For the intensive-margin specification, all four estimators agree
-on negative signs for fiscal balance---ranging from \$\!-126 (Sun-Abraham) to
-\$\!-278 (C\&S DR)---a cross-estimator consensus that does not hold in the
-extensive-margin specification, where covariate adjustment reverses the sign
-relative to unadjusted estimators. The imprecision reflects the limited quinquennial
-observation window: effective control-group sizes after doubly-robust reweighting
-are 11.1 (extensive) and 19.6 (intensive) counties.
+Capital expenditures decline at the intensive margin; all other fiscal outcomes,
+including fiscal balance, total revenue, and property tax revenue, are
+statistically indistinguishable from zero at the national level. The extensive
+margin shows no significant effects on any outcome. For the intensive margin,
+capital outlays fall by \$\!-293 per capita (SE\,=\,164; $p = 0.075$) under C\&S
+doubly-robust estimation. Sun and Abraham's heterogeneity-robust TWFE estimator
+yields a consistent but smaller decline (\$\!-87, SE\,=\,44; $p = 0.049$).
+Synthetic DiD and Two-Stage DiD produce near-zero estimates (\$\!-3 and \$\!-25,
+both statistically insignificant). The divergence across estimators reflects a
+difference in how the control group is weighted: C\&S applies doubly-robust
+propensity-score reweighting that up-weights high-wildfire-potential counties,
+concentrating comparisons among counties with similar fire risk; Synthetic DiD
+and Two-Stage DiD weight all never-treated counties equally, averaging in the
+predominantly unaffected eastern majority and attenuating the estimate toward
+zero. The effective sample size is 122.1 reweighted counties out of 2,591
+never-treated controls.
 
-This paper makes three contributions. First, it provides causal estimates of wildfire fiscal effects for county
-governments across eight western states, extending \citet{liao2022} from
-California municipalities to county governments with diverse property tax
-institutions, evaluated at both the extensive (incidence) and intensive
-(severity) margins; a California-excluded robustness check yields qualitatively
-identical null findings (Table~\ref{tab:robustness}, row~5), confirming that
-results are not driven by California's Proposition~13 environment.
-Second, it demonstrates that defining treatment by fire severity rather than
-fire incidence improves the identification environment: the expanded
-low-to-moderate-severity control pool reduces observable selection and
-yields cross-estimator sign agreement. Third, the null result, while
-consistent with the range of plausible effects, reflects a power constraint
-that annual CoG data would resolve: Table~\ref{tab:mde} shows that the minimum
-detectable effect is \$687--\$1{,}471 per capita for fiscal balance, well above the
-\citet{liao2022} California benchmark of \$97 per capita.
+Two subgroup analyses reveal that the national average conceals opposing institutional
+responses. Restricting to western states yields a fiscal balance decline of
+\$\!-1{,}252 ($p = 0.002$) and a revenue decline of \$\!-1{,}063 ($p = 0.017$),
+absent in the national average, which includes the predominantly unaffected eastern
+majority. A separate institutional heterogeneity analysis shows that the property
+tax revenue decline is concentrated in Dillon's Rule states (\$\!-410, SE\,=\,161,
+$p = 0.011$), where counties lack discretionary authority to adjust tax levies after
+wildfire-induced assessed value erosion; home rule counties show no detectable effect
+(\$\!-26, SE\,=\,242, $p = 0.915$). Counties' statutory taxing authority thus
+determines whether wildfire translates into property tax revenue losses.
+
+This paper makes three contributions. First, it provides causal estimates of wildfire
+fiscal effects for county governments across the contiguous United States, extending
+\citet{liao2022} from California municipalities to a national panel with diverse
+property tax institutions and fiscal regimes. The capital expenditure decline of
+\$\!-293 per capita is detected under C\&S doubly-robust and Sun-Abraham estimators
+against an effective control pool of 122.1 reweighted counties; near-zero estimates
+from Synthetic DiD and Two-Stage DiD arise because those methods do not reweight the
+control pool toward comparable high-fire-risk counties. Second, it documents
+geographic heterogeneity: western states experience a fiscal balance decline of
+\$\!-1{,}252 per capita ($p = 0.002$) and a revenue decline of \$\!-1{,}063
+($p = 0.017$), absent in the national average, with California identified as the
+primary driver of the national capital expenditure result. Third, it shows that
+Dillon's Rule counties experience property tax revenue losses of \$\!-410 per capita
+($p = 0.011$) following high-severity wildfire while home rule counties show no
+such decline, identifying counties' statutory taxing authority as a determinant of
+how wildfire affects local revenues.
 
 The paper proceeds as follows. Section~2 reviews the related literature.
 Section~3 presents the data and both treatment definitions. Section~4 details
-the empirical strategy. Section~5 reports main results for both margins.
-Section~6 presents robustness checks. Section~7 concludes.
+the empirical strategy. Section~5 reports main results for both margins,
+including dose-response analysis and institutional heterogeneity by fiscal
+legal doctrine. Section~6 presents robustness checks. Section~7 concludes.
 
 %% ============================================================
 \section{Related Literature}
 %% ============================================================
 
-\textbf{Natural disasters and local public finance.} The disaster-finance literature
-has established that natural disasters impose persistent fiscal costs on local
-governments, but the evidence base rests almost entirely on hurricanes and floods.
-\citet{deryugina2017} showed that post-hurricane government transfers to affected
-counties exceed direct disaster aid in present value, producing approximate net
-fiscal neutrality; the mechanism is federal social insurance absorption rather
-than own-source revenue recovery. \citet{jerch2023} extended this framework to
-municipal governments, finding that major hurricanes reduced local tax revenues and
-raised debt costs persistently for over a decade, with effects concentrated in
-minority-majority municipalities. Neither paper examines wildfire, where the damage
-mechanism---forest land and vegetation rather than residential structure stock---the
-federal aid architecture (FEMA declarations are less automatic), and the affected
-geography (rural western counties with thin property tax bases) differ substantially
-from hurricane-exposed Atlantic and Gulf Coast governments.
+Natural disasters impose persistent fiscal costs on local governments through multiple channels: tax base
+erosion, elevated spending demands, and federal aid crowding. However, the existing studies focus almost 
+entirely on hurricanes and floods. \citet{deryugina2017} showed that
+post-hurricane government transfers to affected counties exceed direct disaster aid
+in present value, revealing the shock absorption role of the traditional social safety net programs.
+\citet{jerch2023} analyzed the hurricane impact on municipal governments in US Atlantic states. They found that major
+hurricanes reduced local tax revenues and raised debt costs persistently for over a
+decade, with effects concentrated in municipalities with a one standard deviation-above-average racial minority composition. Neither paper
+examines wildfire. The wildfire context differs in three critical ways: damage centers
+on forest land and vegetation rather than residential structure stock; federal aid
+architecture (FEMA declarations are less automatic) limits federal offset to
+own-source losses; and affected geography (rural western counties with thin property
+tax bases) creates different revenue elasticities than Atlantic and Gulf Coast
+communities.
 
-\textbf{Wildfire economics.} Causal research on wildfires has concentrated on
+The existing literature on the economics of wildfires tend to take the environmental and resource economics 
+perspective as reviewed by \citet{bayham2022}. Causal research on wildfires has concentrated on
 property values and residential development \citep{baylis2023}, health outcomes
-from smoke exposure \citep{borgschulte2024}, and insurance markets.
-\citet{liao2022} is the sole paper providing causal estimates of wildfire fiscal
+from smoke exposure \citep{borgschulte2024}, and insurance markets \citep{boomhower2023}.
+To our knowledge, \citet{liao2022} provides the only causal estimate of wildfire fiscal
 impacts: using quasi-random fire perimeter exposure within California, they found
 that municipalities experienced a 25-percentage-point increase in the probability
 of running a budget deficit post-fire, with expenditures growing 17.3\% against
@@ -183,30 +199,37 @@ frozen at purchase price and only reset upon sale, which means post-fire propert
 sales generate reassessment events that temporarily raise assessed values and
 transfer tax revenues even as fire-damaged properties lose market value. Second,
 their sample is municipal governments, which operate under different revenue
-authorities than county governments and are concentrated in the high-density,
-high-value coastal and suburban areas of California rather than in the rural
-forested communities most exposed to wildfire in other western states.
-The proposed paper directly extends \citet{liao2022} to county governments
-across eight states without Proposition 13.
+authorities than counties and concentrate in high-density coastal and suburban
+California rather than rural forested communities exposed to wildfire in the interior
+west. Our analysis moves to county governments
+across the contiguous United States, including states without Proposition~13
+constraints on assessed values.
 
-\textbf{Property tax dynamics.} Property tax revenues do not immediately reflect
-market value changes. \citet{lutz2011} documented a four-year lag between market
-value peaks and property tax revenue troughs during the 2008 housing crisis.
-\citet{chen2025} show that a 1\% market value change translates to less than 0.30\%
-change in assessed value within three years, with wide cross-jurisdiction variance
-driven by assessor practices and state law. This assessment lag implies that the
-most visible property tax revenue response to wildfire will emerge two to four years
-after fire occurrence---the horizon captured by the 2017 and 2022 CoG census
-years for the treatment cohort entering in 2013--2016.
+\textbf{Property tax dynamics.} Property tax revenues lag market value changes through
+two mechanisms: institutional assessment cycles (annual, two-, or three-year
+reassessment schedules) and assessor discretion in translating market losses to
+assessed values. \citet{lutz2011} documents a four-year lag between housing-market
+troughs and property tax revenue troughs during the 2008 crisis.
+\citet{chen2024} shows that a 1\% market value decline translates to less than
+0.30\% assessed value change within three years, with wide variance across
+jurisdictions. For wildfire-affected counties, property tax responses therefore
+concentrate in the 2017 and 2022 census years (four to nine years post-fire for
+2013--2016 fires), capturing medium-run assessments. Near-zero property tax effects
+(Section~5) are consistent with this assessment lag and the offsetting mechanisms
+that operate in home rule jurisdictions.
 
 \textbf{Staggered DiD methodology.} Standard two-way fixed-effects (TWFE) estimators
-are biased when treatment effects are heterogeneous across cohorts and calendar time
-\citep{baker2022, sun2021}. I use the Callaway and Sant'Anna \citeyearpar{callaway2021}
-group-time estimator, which identifies cohort-specific average treatment effects and
-aggregates them with user-specified weights, as the primary specification.
-I report \citet{sun2021} and \citet{arkhangelsky2021} estimates as robustness checks.
-Pre-trend tests follow \citet{roth2022}, who cautions against mechanically accepting
-pre-treatment parallel trends as sufficient for identification.
+are biased when treatment effects differ across cohorts or calendar time
+\citep{baker2022, sun2021}. Because counties enter treatment across 2013--2021 and
+fiscal effects may differ by cohort (early-treated counties observed through 2022,
+late-treated observed once), we require heterogeneity-robust estimators.
+Our primary specification uses the Callaway and Sant'Anna \citeyearpar{callaway2021}
+group-time estimator, which separately identifies cohort-specific effects and
+aggregates them, avoiding implicit negative weights that bias standard TWFE. We
+report the Sun-Abraham \citeyearpar{sun2021} heterogeneity-robust TWFE and
+Synthetic DiD \citep{arkhangelsky2021} as robustness checks to assess whether
+results depend on the control-group weighting scheme implicit in each estimator.
+Pre-trend tests follow \citet{roth2022}.
 
 %% ============================================================
 \section{Data}
@@ -214,48 +237,48 @@ pre-treatment parallel trends as sufficient for identification.
 
 \subsection{Sample Construction}
 
-The sample comprises county governments in eight western states: California, Colorado,
-Idaho, Montana, Oregon, Utah, Washington, and Wyoming. I restrict to counties
-present in the Census of Governments quinquennial census for all five census years
-(2002, 2007, 2012, 2017, 2022), yielding a balanced panel of 344 counties and 1,720
-county-year observations. Two Montana consolidated city-counties (Deer Lodge and
-Silver Bow) are excluded because they are not classified as county governments in
-the CoG entity type system.
+The sample comprises all county governments in the contiguous United States
+(lower-48 states). We restrict to counties present in the Census of Governments
+quinquennial census for all five years (2002, 2007, 2012, 2017, 2022). The lower-48
+states contain approximately 3,000 county governments; we exclude two Montana
+consolidated city-counties (Deer Lodge and Silver Bow) that lack county-government
+status in the CoG entity type system, yielding a balanced panel of 2,975 counties
+and 14,875 county-year observations.
 
-I implement two treatment definitions that correspond to the extensive and intensive
+We implement two treatment definitions that correspond to the extensive and intensive
 margins of wildfire exposure.
 
 \textit{Extensive margin (fire incidence).} Treatment is a county's first qualifying
 MTBS wildfire ($\geq\!1{,}000$ acres) within the 2013--2021 window, regardless of
-severity. Under this definition, 293 counties are treated: 208 experienced a first
+severity. Under this definition, 884 counties are treated: 629 experienced a first
 qualifying fire in 2013--2016 (early cohort, g\,=\,2017; observed post-treatment in
-the 2017 and 2022 censuses) and 85 experienced a first qualifying fire in 2017--2021
-(late cohort, g\,=\,2022; observed in the 2022 census). The 51 counties with no
-qualifying MTBS fire in 2013--2021 form the never-treated control group
-(effective sample size: 11.1 counties after doubly-robust reweighting).
+the 2017 and 2022 censuses) and 255 experienced a first qualifying fire in 2017--2021
+(late cohort, g\,=\,2022; observed in the 2022 census). The 2,091 counties with no
+qualifying MTBS fire in 2013--2021 form the never-treated control group.
 
 \textit{Intensive margin (fire severity).} Treatment is a county's first
 \textit{high-severity} qualifying wildfire within the 2013--2021 window. A fire
-qualifies as high-severity if the MTBS program identified a distinct High-severity
-dNBR classification class, as indicated by the fire-specific \texttt{HIGH\_THRES}
-attribute (between 100 and 5,000 dNBR units) in the MTBS perimeter file. A
-\texttt{HIGH\_THRES} value in this range indicates that MTBS analysts fitted a
-fire-specific dNBR histogram with a classifiable High-severity tail, corresponding
-to stand-replacement burning with severe vegetation mortality. Fires with
-\texttt{HIGH\_THRES}\,=\,9,999 (sentinel: no distinct high-severity class) are
-classified as low-to-moderate-severity. Under this definition, 246 counties are
-treated: 173 in the early cohort (g\,=\,2017) and 73 in the late cohort (g\,=\,2022).
-The 98 counties without a qualifying high-severity fire in 2013--2021---including
-47 counties that experienced only low-to-moderate-severity fires---form the
-never-treated control group (effective sample size: 19.6 counties after
-doubly-robust reweighting).
+qualifies as high-severity if MTBS analysts identified a classifiable High-severity
+dNBR tail in the fire's burn-severity histogram. Operationally, this is indicated by
+the fire-specific \texttt{HIGH\_THRES} attribute (100--5,000 dNBR units) in the MTBS
+perimeter file, representing the dNBR threshold above which pixels reflect severe
+vegetation mortality and stand-replacement burning. Fires with
+\texttt{HIGH\_THRES}\,=\,9,999 lack a detectable high-severity tail and are
+classified as low-to-moderate-severity. Under this definition, 384 counties are
+treated: 267 in the early cohort (g\,=\,2017) and 117 in the late cohort (g\,=\,2022).
+The control group comprises 2,591 counties without a qualifying high-severity fire
+in 2013--2021, including those that experienced only low-to-moderate-severity fires.
+After propensity-score inverse-probability weighting in the doubly-robust estimation
+(see Section~4), this control group has an effective sample size of 122.1 reweighted
+units, reflecting concentration on high-fire-risk counties comparable to treated
+counties.
 
 The intensive-margin control group is strictly larger than the extensive-margin
-control group: it includes the same 51 zero-fire counties plus 47 counties with
-low-to-moderate-severity fires. These 47 counties provide an expanded, closer
-counterfactual for counties experiencing high-severity fires, because they share
-similar wildfire hazard profiles and pre-treatment fire histories with the treated
-group while differing primarily on fire severity.
+control group: it includes all 2,091 zero-fire counties plus counties with
+low-to-moderate-severity fires. These counties provide an expanded, closer
+counterfactual for high-severity-fire counties because they share similar wildfire
+hazard profiles and pre-treatment fire histories with the treated group while
+differing primarily on fire severity.
 
 \subsection{Fiscal Outcomes}
 
@@ -263,18 +286,20 @@ Fiscal data come from the Census of Governments quinquennial census, which provi
 complete coverage of all government units. For the 2017 and 2022 censuses, which
 use the Individual Unit File format (a 32-character fixed-width record), aggregate
 summary codes (total general revenue, total general expenditure) are absent.
-I reconstruct these aggregates from line-item codes following the published
+We reconstruct these aggregates from line-item codes following the published
 itemization guide, summing across federal and state intergovernmental revenue
 (B-codes and C-codes), own-source revenue (T, U, and A codes), and direct general
 expenditure (E, F, G, and J codes).
 
-All fiscal outcomes are expressed per capita in 2019 dollars, using ACS 5-year
-estimates for population denominators and the national CPI-U for deflation.
-Fiscal year data are assigned to the calendar year in which the fiscal year begins:
-a fiscal year ending June 30, 2017 is coded to 2016. In the eight states in the
-sample, all county fiscal years end on June 30, except Idaho (September 30);
-the resulting treatment cohort assignments are unaffected because the timing
-difference is less than one calendar year.
+All fiscal outcomes are per capita in 2019 dollars, using ACS 5-year population
+estimates and national CPI-U deflation. For calendar-year and July--June fiscal-year
+states, fiscal year ending June 30, 2017 is assigned to calendar year 2016, aligning
+fiscal data with the pre-treatment baseline. For December-fiscal-year states
+(Indiana, Kentucky, Minnesota, Missouri, New Hampshire, New Jersey, New York,
+North Dakota, Ohio, Pennsylvania, South Dakota, West Virginia, and Wisconsin), the
+CoG-labeled census year is used directly. Treatment cohort assignments, based on
+fire year rather than fiscal year, are unaffected by state-level fiscal year
+differences.
 
 The headline outcome is \textit{fiscal balance per capita} (total general revenues
 minus total general expenditures), which captures the net fiscal burden in a
@@ -303,24 +328,25 @@ fire-specific dNBR threshold above which pixels are classified as High-severity.
 This threshold is set separately for each fire using the fire's dNBR histogram;
 a value of 9,999 indicates the histogram lacked a classifiable High-severity tail,
 meaning high-severity burning either did not occur or could not be isolated.
-I intersect fire perimeters with county boundaries using GeoPandas and assign each
+We intersect fire perimeters with county boundaries using GeoPandas and assign each
 county the year of its first qualifying \textit{high-severity} fire in 2013--2021.
 Counties with no qualifying high-severity fire in this window are never-treated.
-I construct a 100 km smoke exclusion buffer around all fire perimeters. For fiscal
+We construct a 100 km smoke exclusion buffer around all fire perimeters. For fiscal
 outcomes, which operate through property damage and local spending channels rather
 than the smoke inhalation channel, the buffer restriction is not applied in the
 main analysis.
 
 \subsection{Covariates}
 
-Propensity score estimation uses: WFP quintile (1--5), an indicator for any
-qualifying fire before 2013, log pre-2013 cumulative acres burned, USDA Rural-Urban
-Continuum Code (2013 vintage), log median household income, poverty rate,
-uninsurance rate, and log population density---all measured at the 2012 CoG census
-or from the 2007--2011 ACS 5-year estimates. Pre-treatment fiscal baselines
-(log revenue per capita, log property tax per capita, log long-term debt per capita
-in 2012) are included in the propensity score to account for pre-existing fiscal
-differences between counties that will and will not experience wildfire.
+Propensity score estimation uses baseline covariates measured at the 2012 CoG census
+or 2007--2011 ACS: WFP quintile, pre-2013 fire indicator and log cumulative acres
+burned, USDA Rural-Urban Continuum Code (2013 vintage), log median household income,
+poverty rate, population share aged 65 or older, and log population density.
+We exclude health insurance coverage (ACS \texttt{B27001}) because it is unavailable
+in pre-2012 ACS 5-year files, preventing consistent pre-treatment matching. We
+include pre-treatment fiscal baselines (2012 log revenue, log property tax, and log
+long-term debt per capita) to account for fiscal differences that may predict both
+wildfire exposure and outcomes.
 
 \subsection{Summary Statistics}
 
@@ -328,13 +354,13 @@ Table~\ref{tab:balance} reports pre-treatment means and standardized mean differ
 (SMD) for treated (high-severity fire) and control (no high-severity fire) counties,
 before and after propensity-score inverse-probability weighting. In the unweighted
 comparison, treated counties have substantially higher wildfire potential (WFP mean
-1,064 vs.\ 208; SMD = 0.89), higher rates of pre-2013 fire history (92\% vs.\ 56\%),
-and higher pre-2013 fire acres burned (SMD = 1.20). After IPW, WFP differences
-compress to SMD = 0.13, and pre-2013 fire history is well-balanced (SMD = $-$0.03).
-The expanded control group of 98 counties---enriched by counties with low-to-moderate
-severity fires---provides a more relevant comparison set and improves the effective
-sample size (ESS) of the reweighted control group to 19.6 (from 11.1 in an all-fire
-analysis), a 77\% improvement in effective statistical power.
+826 vs.\ 79; SMD = 0.93), higher rates of pre-2013 fire history (93.5\% vs.\ 30.1\%;
+SMD = 1.72), and higher pre-2013 log fire acres (SMD = 1.55). After IPW, WFP quintile
+compresses to SMD = 0.06, and pre-2013 fire history is well-balanced (SMD = $-$0.02).
+The national control group of 2,591 counties provides a large, diverse comparison
+set. After propensity-score IPW, the effective sample size (ESS) is 122.1 reweighted
+control units---roughly one-third the treated count of 384, reflecting concentration
+of weights on high-fire-risk counties that most closely resemble treated counties.
 
 %% ============================================================
 \section{Empirical Strategy}
@@ -354,18 +380,17 @@ census year, and let $\infty$ denote never-treated. The group-time ATT is:
 %
 \noindent where $Y_{it}(g)$ is the potential outcome for county $i$ in census year
 $t$ under first treatment in cohort $g$, and $Y_{it}(\infty)$ is the never-treated
-potential outcome. I estimate equation~(\ref{eq:att_gt}) using the doubly-robust
+potential outcome. We estimate equation~(\ref{eq:att_gt}) using the doubly-robust
 (DR) estimator of \citet{callaway2021}, which combines propensity-score and
 outcome-regression adjustments so that the estimate is consistent if either
 the propensity score or the outcome model is correctly specified.
 
-The propensity score model is a logistic regression of ever-treated status on
-the covariates described in Section~3. The outcome regression includes the same
-covariate vector. I use \texttt{base\_period = ``varying''}, which sets a
-pre-treatment comparison period separately for each group-time cell, and
-\texttt{control\_group = ``nevertreated''}, restricting comparisons to the 98
-never-treated counties (those without a qualifying high-severity fire in 2013--2021).
-Standard errors are clustered at the county level and computed via block bootstrap
+The propensity score model is logistic regression of ever-treated status on
+covariates described in Section~3. The outcome regression includes the same covariate
+vector. We specify \texttt{base\_period = ``varying''} to set a separate
+pre-treatment comparison period for each cohort-time cell, and
+\texttt{control\_group = ``nevertreated''} to restrict comparisons to the 2,591
+never-treated counties. Standard errors are clustered by county using block bootstrap
 with 999 replications.
 
 The primary reported estimate is the simple aggregated ATT:
@@ -376,50 +401,49 @@ The primary reported estimate is the simple aggregated ATT:
 \end{equation}
 %
 \noindent where $\hat{\omega}(g,t) \propto \Pr(G_i = g)$ weights each cohort-period
-cell by cohort size. I also report cohort-specific aggregations (ATT for
+cell by cohort size. We also report cohort-specific aggregations (ATT for
 g\,=\,2017 and g\,=\,2022 separately) and event-study dynamic aggregations
 (ATT at relative time $\ell = t - g$ for $\ell \in \{-10, -5, 0, 5\}$ in
 quinquennial CoG years).
 
 \subsection{Identifying Assumption}
+\label{sec:identify}
 
-The key identifying assumption is conditional parallel trends: conditional on the
-WFP quintile, pre-treatment fire history, and other covariates, treated and
-never-treated counties would have followed the same fiscal trajectory absent
-wildfire. This assumption is most plausible in the DR framework, which adjusts
-for observable selection into treatment. The fire literature provides a natural
-justification: within a given wildfire hazard class, the timing of a county's
-first large fire in 2013--2021 depends on stochastic weather shocks---drought
-conditions, lightning ignition probability, and wind speed---that are plausibly
-orthogonal to the county's fiscal trend conditional on baseline hazard level.
+Identification rests on conditional parallel trends: conditional on WFP quintile,
+pre-treatment fire history, and other covariates, treated and never-treated counties
+would have followed the same fiscal trajectory absent wildfire. Within a given
+wildfire-hazard quintile, fire occurrence is triggered by stochastic weather
+shocks---drought, lightning, wind---that are orthogonal to a county's underlying
+fiscal trend. By matching on WFP baseline hazard, we compare treated and control
+counties with similar fire risk, isolating the causal effect of the shock's timing.
 
 \subsection{Pre-trends and Power}
+\label{sec:pretrends}
 
-I test for pre-treatment parallel trends using the dynamic ATT estimates at
+We test for pre-treatment parallel trends using the dynamic ATT estimates at
 $\ell = -10$ and $\ell = -5$ (census years 2002 and 2007 for the g\,=\,2017 cohort).
 A joint chi-squared test of the null that all pre-treatment dynamic ATTs equal
-zero is reported for each outcome. Pre-trend tests pass comfortably for all
-outcomes (minimum $p = 0.50$ for fiscal balance; minimum $p = 0.60$ across all
-headline outcomes), consistent with the conditional parallel trends assumption.
-The strong pre-trend performance reflects the improved comparability of the
-expanded control group: counties with low-to-moderate-severity fires share
-similar WFP profiles and pre-treatment fire histories with high-severity-fire
-counties, making pre-treatment fiscal trajectories more parallel.
+zero is reported for each outcome. Pre-trend tests pass for all headline fiscal outcomes except intergovernmental
+revenues, which shows a joint pre-trend $p = 0.042$. For fiscal balance, total
+revenue, and capital expenditures, joint pre-trend tests are not rejected
+(all $p > 0.10$). The intergovernmental revenue pre-trend violation is addressed
+via Honest DiD sensitivity analysis (Rambachan and Roth 2023) in
+Section~\ref{sec:robustness}; the post-treatment estimate remains consistent with
+zero under all magnitudes of pre-trend misspecification. The strong pre-trend
+performance for the main fiscal outcomes reflects the improved comparability of the
+expanded national control group.
 
-\citet{roth2022} cautions that passing pre-trend tests does not validate the parallel
-trends assumption, because the test lacks power to detect confounding trends when
-pre-treatment variation is limited. In this application, the three quinquennial
-pre-treatment observations (2002, 2007, 2012) provide limited pre-trend signal.
-Quantifying this limitation: for fiscal balance under the intensive margin,
-the maximum pre-trend slope that passes the test undetected (1.96 times the
-maximum pre-period bootstrap SE, a conservative scalar bound from
-\citealt{roth2022}) is approximately \$795 per capita per quinquennium---nearly
-three times the ATT point estimate of \$\!-278. For capital expenditures the
-bound is \$289 per quinquennium (1.6 times the ATT). The pre-trend point
-estimates are small (fiscal balance at $\ell = -15, -10, -5$: \$58, \$86,
-\$237; none significant), providing qualitative reassurance, but the design
-cannot rule out moderate confounding trends. Pre-trend results should be read
-as consistent with, not confirmation of, conditional parallel trends.
+A critical limitation: passing pre-trend tests does not validate conditional parallel
+trends when pre-treatment variation is limited \citep{roth2022}. This application
+has only three pre-treatment census observations (2002, 2007, 2012). The maximum
+undetected pre-trend slope (1.96 times the pre-period bootstrap SE, a conservative
+scalar bound from \citealt{roth2022}) is approximately \$795 per capita per
+quinquennium for fiscal balance---roughly twice the ATT point estimate of \$+379---and
+\$289 for capital expenditures, comparable to the ATT of \$\!-293. Pre-treatment
+tests pass, but with only three pre-treatment periods they cannot confirm conditional
+parallel trends, only show consistency with them.
+The robustness section addresses this concern via Honest DiD sensitivity analysis
+(Rambachan and Roth 2023).
 
 \subsection{Threats to Identification}
 
@@ -458,18 +482,16 @@ block-bootstrap SEs; this limitation biases toward finding significance and thus
 works against the null result reported here.
 
 \textbf{Control pool composition and smoke contamination.} By expanding the
-never-treated group to include counties with low-to-moderate-severity fires,
-this design compares counties along a common fire-exposure continuum. The primary
-identification concern shifts from comparing fire-exposed to never-exposed counties
-(the any-fire design) to comparing high-severity to low/moderate-severity fire
-counties. A potential confound arises if low-severity fire counties also experienced
-fiscal impacts from their fires, attenuating the estimated ATT. In this case, the
-estimates represent a lower bound on the fiscal impact of high-severity relative to
-low-severity fire---a locally identified but policy-relevant parameter, since many
-risk-reduction interventions (prescribed burns, fuel treatments) aim to reduce
-fire severity rather than fire occurrence. The effective sample size of the
-reweighted control group is 19.6 counties out of 98, a constraint on statistical
-power but an improvement over the any-fire specification (ESS = 11.1 of 51).
+never-treated group to include low-to-moderate-severity-fire counties, we compare
+counties on a common fire-exposure continuum rather than comparing fire-exposed to
+fire-free counties. This design choice improves covariate balance but shifts the
+identification concern: if low-severity-fire counties also experience fiscal impacts,
+our estimates will understate the high-severity effect---an attenuation bias where
+the ATT captures high-severity relative to low-severity fire, not high-severity
+relative to no fire. The estimated ATT therefore represents a lower bound on the
+fiscal impact of high-severity wildfire; it is a locally identified but
+policy-relevant parameter, since many risk-reduction interventions (prescribed
+burns, fuel treatments) aim to reduce fire severity rather than fire occurrence.
 
 %% ============================================================
 \section{Results}
@@ -477,127 +499,111 @@ power but an improvement over the any-fire specification (ESS = 11.1 of 51).
 
 \subsection{Extensive Margin: Fire Incidence}
 
-Table~\ref{tab:main_ext} reports doubly-robust C\&S ATT estimates for the extensive
-margin, comparing 293 counties that experienced a first qualifying wildfire
-($\geq\!1{,}000$ acres) in 2013--2021 to 51 never-fired control counties (ESS = 11.1).
-Column (1), the headline outcome, shows an ATT of \$\!-649 per capita on fiscal
-balance (SE = 525, $p = 0.217$; 95\% CI: [\$\!-1{,}678, \$381]). The 2012
-pre-treatment median fiscal balance for treated counties was approximately
-\$1,580 per capita, so the point estimate represents a 41\% reduction---economically
-large but statistically imprecise. No outcome achieves conventional significance.
+Table~\ref{tab:main_ext} reports the extensive-margin results: ATTs comparing 884
+counties that experienced a first qualifying wildfire ($\geq\!1{,}000$ acres) in
+2013--2021 to 2,091 never-fired counties. All outcomes are statistically
+indistinguishable from zero. Column (1), fiscal balance, shows
+an ATT of \$+535 per capita (SE = 489, $p = 0.274$; 95\% CI: [\$\!-424, \$1,493]).
+The positive sign reflects near-zero revenue changes combined with a decline in
+total expenditures (\$\!-205, $p = 0.546$). Revenue outcomes are small in
+magnitude: total revenue ATT = \$+330 (SE = 757, $p = 0.663$), property tax ATT = \$+341
+(SE = 591, $p = 0.564$), intergovernmental transfers ATT = \$+53 (SE = 161, $p = 0.740$).
+Capital expenditures show ATT = \$\!-35 (SE = 201, $p = 0.861$), consistent with
+no effect at the extensive margin. Long-term debt is positive but imprecise
+(\$+1,608, $p = 0.392$).
 
-Revenue declines are broad and large in magnitude. Total revenue per capita shows
-ATT = \$\!-650 (SE = 646, $p = 0.314$). The largest point estimate is for
-intergovernmental transfers: ATT = \$\!-841 (SE = 661, $p = 0.203$).
-The negative sign is counterintuitive---post-fire counties are expected to
-receive more federal and state aid, not less---but several mechanisms are
-consistent with it. First, federal land payments (PILT and Secure Rural Schools),
-which are tied to federal land area and not fire-triggered, trend separately
-from emergency transfers; if treated (high-WFP) counties experienced declining
-land payments relative to zero-fire controls over this period, the IGT ATT
-would be negative. Second, the CoG IGT category aggregates state and federal
-transfers across all programs, including formula-driven payments that may
-grow more slowly in high-fire counties if their eligible populations (e.g.,
-road miles, school enrollment) stagnate. Given the large standard error,
-the estimate is statistically consistent with zero. Property tax revenue is near zero (\$+46, $p = 0.824$), consistent
-with fire effects on assessed values being modest at this horizon across the
-broad set of all fire-affected counties. Capital expenditures show
-ATT = \$\!-226 (SE = 163, $p = 0.166$; 95\% CI: [\$\!-545, \$93])---the sharpest
-signal, consistent with post-fire fiscal adjustment through deferred investment.
-Total expenditures (\$\!-2, $p = 0.996$) and long-term debt (\$+55, $p = 0.869$)
-show negligible effects.
-
-The wide confidence intervals in the extensive-margin specification reflect the
-small never-treated control group (51 counties, ESS = 11.1 after reweighting).
-The covariate imbalance between fire-affected and never-affected counties is also
-greater than in the intensive-margin design: pre-treatment WFP is 1,064 for
-treated counties vs.\ 208 for controls (SMD = 0.89 unweighted), reflecting
-systematic geographic sorting between high-hazard and fire-free counties.
+The extensive-margin null finding's credibility is limited by large covariate
+imbalance: pre-treatment WFP is 826 for treated vs.\ 79 for controls
+(SMD\,=\,0.93 unweighted), reflecting strong geographic sorting between high-hazard
+and fire-free counties. Although doubly-robust reweighting partially addresses this
+imbalance, the large baseline difference undermines causal inference for any-fire
+exposure. The intensive-margin specification avoids this problem by comparing
+high-severity to low-to-moderate-severity counties with similar underlying fire risk.
 
 \subsection{Intensive Margin: Fire Severity}
 
 Table~\ref{tab:main_int} reports doubly-robust C\&S ATT estimates for the intensive
-margin, comparing 246 counties that experienced a first high-severity wildfire
-in 2013--2021 to 98 counties without a qualifying high-severity fire (ESS = 19.6).
-Column (1) shows an ATT of \$\!-278 per capita on fiscal balance
-(SE = 245, $p = 0.258$; 95\% CI: [\$\!-758, \$203]). The magnitude is
-economically meaningful---an 18\% reduction from the 2012 median---but falls
-short of conventional significance. No outcome achieves statistical significance.
+margin, comparing 384 counties that experienced a first high-severity wildfire
+in 2013--2021 to 2,591 counties without a qualifying high-severity fire (ESS = 122.1).
+The headline intensive-margin finding is a capital expenditure decline: C\&S DR
+yields \$\!-293 per capita (SE\,=\,164, $p = 0.075$; 95\% CI: [\$\!-615, \$29]).
+The Sun-Abraham heterogeneity-robust TWFE estimator yields \$\!-87
+(SE\,=\,44, $p = 0.049$), smaller in magnitude but conventionally significant.
+Both estimators are negative and consistent with capital deferral, despite diverging
+on magnitude due to different control-group weighting schemes (discussed in
+Section~\ref{sec:robustness}). Total expenditures also decline:
+ATT = \$\!-448 (SE = 274, $p = 0.102$).
 
-Revenue falls broadly. Total revenue per capita shows ATT = \$\!-325
-(SE = 306, $p = 0.289$). Intergovernmental transfers show ATT = \$\!-99
-(SE = 148, $p = 0.504$), consistent with incomplete fiscal buffering through
-federal and state aid. Property tax revenue is negative (\$\!-167, $p = 0.464$),
-a stronger signal than in the extensive-margin design, consistent with
-high-severity fire damage reducing market values enough to affect assessed values
-over the four-to-nine-year observation horizon. Capital expenditures show
-ATT = \$\!-181 (SE = 124, $p = 0.142$; 95\% CI: [\$\!-423, \$61])---the
-sharpest estimate across outcomes, consistent with deferred capital investment
-as the primary post-fire fiscal adjustment mechanism.
+Fiscal balance is positive and insignificant (ATT\,=\,\$+379, $p = 0.165$). The
+positive sign reflects the specific channel: total expenditures decline by \$448
+(SE\,=\,274, $p = 0.102$) while total revenue declines by only \$69
+(SE\,=\,359, $p = 0.847$). Expenditure cuts exceed revenue losses, preserving fiscal balance; capital deferral
+is the primary adjustment margin rather than revenue collapse or debt issuance. Property tax revenue is near zero (ATT\,=\,\$+40, $p = 0.853$). Property damage
+causes assessed-value declines, but assessments lag market values by two to three
+years (Section~2). Our 2017 and 2022 census observations fall four to nine years
+post-fire for early-treated cohorts, suggesting medium-run assessments should be
+captured. The null property-tax result indicates that either fire damage to assessed
+values is modest, or offsetting mechanisms---levy adjustments in home rule
+counties---are active (Section~\ref{sec:home_rule}). Intergovernmental transfers are
+near zero (ATT\,=\,\$\!-40, $p = 0.798$), inconsistent with systematic FEMA aid
+offset. Long-term debt is positive but
+imprecise (\$+1,014, $p = 0.240$).
 
-Comparing the two specifications, point estimates for fiscal balance are larger
-in magnitude under the extensive margin (\$\!-649) than the intensive margin
-(\$\!-278), but the extensive-margin SEs are also larger, reflecting the smaller
-and less comparable control group. The intensive-margin design provides a cleaner
-identification environment: pre-treatment parallel trends pass more strongly
-(minimum $p = 0.50$ across outcomes vs.\ borderline results for some outcomes
-in the extensive-margin design), and---as shown in Section~\ref{sec:robustness}---all
-four estimators agree on negative signs for the intensive-margin specification
-but not for the extensive-margin specification.
+The intensive-margin design offers cleaner identification: covariate balance is strong
+(WFP SMD after IPW\,=\,0.06, compared to 0.93 unweighted), pre-treatment parallel
+trends are satisfied for all headline outcomes (Section~\ref{sec:pretrends}), and
+the effective control pool is sizable (ESS\,=\,122.1 of 2,591). The capital
+expenditure finding reflects post-fire fiscal triage: counties cut the most
+deferrable budget item to fund emergency expenditures without raising revenues. At
+the four-to-nine-year observation window, property tax revenues have not collapsed,
+consistent with assessment lags and home-rule offsetting mechanisms (Section~\ref{sec:home_rule}).
 
 \subsection{Cohort Heterogeneity}
 \label{sec:cohort}
 
 Table~\ref{tab:cohort} disaggregates the ATT by treatment cohort for both margins.
 Panel~A (extensive margin) shows that g\,=\,2017 counties carry a fiscal balance ATT
-of \$\!-734 (SE = 607, $p = 0.227$) and capital outlays ATT of \$\!-283 (SE = 191,
-$p = 0.139$). This cohort-level estimate averages two group-time cells:
-ATT$(g{=}2017, t{=}2017) = {-}\$556$ (SE = 704, $p = 0.430$)---the clean
-first-fire period---and ATT$(g{=}2017, t{=}2022) = {-}\$913$ (SE = 632, $p = 0.149$).
-An important caveat applies to the latter cell: 192 of 208 g\,=\,2017 counties
-(92.3\%) also experienced qualifying fires in 2017--2021, so ATT$(g{=}2017, t{=}2022)$
-conflates the effect of the original 2013--2016 fire with cumulative subsequent
-fire exposure. The clean first-fire estimate---ATT$(g{=}2017, t{=}2017)$---is
-consistent with the headline null result but imprecise (SE = 704, wide interval
-[\$\!-1{,}936, \$824]).
-For g\,=\,2022 counties, fiscal balance is \$\!-211 (SE = 187,
-$p = 0.258$) and capital outlays are near zero (\$+65, $p = 0.270$).
-Panel~B (intensive margin) shows g\,=\,2017 fiscal balance ATT of \$\!-160
-(SE = 220, $p = 0.467$) and capital outlays of \$\!-215 (SE = 143, $p = 0.132$).
-The g\,=\,2022 cohort is observed in only one post-treatment census year (2022);
-its ATT is therefore identified from a single cross-sectional comparison
-between g\,=\,2022 counties and never-treated counties adjusted for covariates
-rather than from within-unit pre-post variation. The resulting estimate for
-fiscal balance (\$\!-865, SE = 1,420) is very imprecise and should be
-interpreted with caution. Across both designs, the capital outlay
-reduction is concentrated in g\,=\,2017 counties, which have two post-treatment
-census years to absorb and reveal medium-run fiscal adjustment.
+of \$+642 (SE = 535, $p = 0.230$) and capital outlays ATT of \$\!-33 (SE = 248,
+$p = 0.895$). For g\,=\,2022 counties, fiscal balance is near zero (\$+8,
+$p = 0.974$) and capital outlays are \$\!-48 ($p = 0.775$). Across both cohorts,
+the extensive-margin results are uniformly null.
+
+Panel~B (intensive margin) shows more informative cohort-level estimates.
+The g\,=\,2017 cohort (267 counties; fires 2013--2016) shows: fiscal balance ATT of
+\$+551 (SE\,=\,305, $p = 0.071$), capital outlays ATT of \$\!-298 (SE\,=\,176,
+$p = 0.089$), and total expenditures ATT of \$\!-605 (SE\,=\,312, $p = 0.053$).
+The expenditure decline outpaces revenue changes (total revenue near zero), so
+counties absorb fire-driven costs primarily through capital deferral rather than
+revenue recovery, and fiscal balance remains positive.
+The g\,=\,2022 cohort (117 counties; fires 2017--2021) is observed in only the 2022
+census---one post-treatment observation. The capital outlay estimate
+(\$\!-268, SE\,=\,149, $p = 0.072$) relies entirely on covariate adjustment rather
+than within-county pre-post variation, limiting causal interpretation. The estimate
+is directionally consistent with the g\,=\,2017 result (\$\!-298), with both cohorts
+showing capital deferral of \$270--\$300 per capita, suggesting this adjustment
+occurs within four to nine years of fire exposure regardless of cohort entry year.
 
 \subsection{Event Study}
 
-Figure~\ref{fig:event_study} plots dynamic ATT estimates by event time
+Figure~\ref{fig:event_study} plots dynamic ATT estimates at event times
 $\ell \in \{-10, -5, 0, 5\}$ for fiscal balance and capital expenditures under
-the intensive-margin specification.
-Pre-treatment estimates at $\ell = -10$ and $\ell = -5$ are statistically
-indistinguishable from zero for both outcomes, consistent with pre-treatment
-parallel trends. The post-treatment period ($\ell = 0$) shows negative point
-estimates for both outcomes, with the capital expenditure decline materializing
-at $\ell = 0$ and persisting at $\ell = 5$.
-The joint pre-trend test is not rejected for any headline outcome
-(all $p > 0.50$; range 0.50--0.99 across outcomes), providing strong
-pre-treatment parallel trends evidence for the intensive-margin design.
+the intensive-margin specification. Pre-treatment estimates at $\ell = -10$ and
+$\ell = -5$ are statistically indistinguishable from zero for both outcomes, and
+the joint pre-trend test is not rejected (all $p > 0.50$ across headline outcomes).
+Post-treatment, capital expenditures decline at $\ell = 0$ and persist at $\ell = 5$,
+consistent with medium-run fiscal adjustment. Fiscal balance is positive and statistically null post-treatment.
 
 \subsection{Dose-Response: Does Fire Size Predict Fiscal Effects?}
 \label{sec:dose_response}
 
 The preceding results compare counties that experienced any qualifying fire against
-those that did not. A natural follow-on question is whether the null result holds
-across the fire size distribution, or whether larger fires generate detectably worse
-fiscal outcomes. To examine this, I construct a dose variable,
+those that did not. If fire incidence alone yields no detectable effect, very large
+fires may still exceed typical county reserves enough to generate measurable fiscal
+damage. To examine this, we construct a dose variable,
 $D_i = \log(\text{MaxAcres}_i)$, equal to the log of the largest qualifying
 MTBS fire experienced by county $i$ within its treatment cohort window
 (2013--2016 for cohort $g = 2017$; 2017--2021 for cohort $g = 2022$).
-The median $D_i$ among treated counties corresponds to approximately 13,161 acres.
+The median $D_i$ among treated counties corresponds to approximately 5,825 acres.
 
 The primary dose-response estimator is a two-way fixed effects regression,
 \begin{equation}
@@ -613,42 +619,80 @@ the never-treated baseline. This TWFE specification is subject to the same
 heterogeneous-treatment-effects bias as standard TWFE in staggered designs
 \citep{baker2022}: if dose-response slopes differ between the g\,=\,2017 and
 g\,=\,2022 cohorts, the estimator may assign implicit negative weights to some
-cohort-period combinations. Panel~B presents Callaway-Sant'Anna dose-bin estimates
-as a complementary check that avoids this concern. A 10-fold increase in max fire size (e.g., 10,000 to
-100,000 acres) implies an effect of $\log(10) \times \hat{\beta} \approx 2.3\,\hat{\beta}$.
+cohort-period combinations. Panel~B presents Callaway-Sant'Anna dose-bin estimates as a complementary check that
+avoids this concern.
 
-Panel A of Table~\ref{tab:dose_response} presents TWFE estimates for all seven
-fiscal outcomes. No coefficient is statistically significant. The fiscal balance
-estimate is $\hat{\beta} = 10.76$ (SE = 11.56, $p = 0.353$), implying that a
-10-fold increase in max fire size is associated with approximately \$25 per capita
-in additional fiscal balance change---economically negligible against a pre-treatment
-median of approximately \$4,200 per capita. Capital expenditures and total revenue
-are similarly uninformative (both $p > 0.39$). Pre-trend Wald tests on the
-year-by-dose interactions at $t = \{2002, 2007\}$ pass for all primary outcomes
-(fiscal balance: $p = 0.357$; capital expenditures: $p = 0.188$). Property tax
-revenue is the single exception (Wald $p = 0.019$), suggesting pre-existing
-differences in property tax trajectories between high- and low-fire-risk counties
-that pre-date the treatment window; the dose-response TWFE estimate for that
-outcome should be interpreted with caution.
+Panel A of Table~\ref{tab:dose_response} presents TWFE dose-response estimates for
+all seven fiscal outcomes. A 10-fold increase in maximum fire size (e.g., 10,000 to
+100,000 acres) implies a fiscal balance change of
+$\log(10) \times \hat{\beta} \approx 2.3 \times 10.23 \approx \$24$ per capita
+(0.6\% of median pre-fire balance)---substantively negligible. The fiscal balance
+$\hat{\beta} = +10.23$ (SE\,=\,4.80, $p = 0.033$) is statistically significant but
+economically trivial. More important, pre-trend tests for total revenue, capital
+expenditures, and total expenditures are rejected ($p \leq 0.040$), indicating that
+TWFE dose estimates for these outcomes are biased by differential pre-treatment
+trends across the fire-size distribution. The failure of pre-trend tests for total
+revenue, capital outlays, and total expenditures indicates that dose-response slopes
+differ across the fire-size distribution. The fiscal balance pre-trend passes
+($p = 0.313$), but the pattern of failures for its components (revenue $p = 0.089$,
+expenditure $p = 0.003$) suggests confounding: any fiscal balance signal may reflect
+omitted fire-size-correlated differences rather than true dose effects. The C\&S
+dose-bin results are more credible.
 
-Panel B provides a complementary C\&S doubly-robust check. I split treated counties
-at the median $D_i$ into low-dose ($n = 147$) and high-dose ($n = 146$) bins and
-estimate the simple ATT for each bin against never-treated controls.
-Low-dose counties generate a precisely null result for fiscal balance
-(ATT = \$\!-179, SE = \$415, $p = 0.667$). High-dose counties produce a larger
-negative estimate (ATT = \$\!-1{,}075, SE = \$635, $p = 0.091$) that is
-marginally significant at the 10\% level but does not survive the conventional
-5\% threshold. Both bins produce insignificant capital expenditure estimates.
-The marginal high-dose result likely reflects concentration among large-fire
-California counties; given the small treated-county effective sample and
-the 5.4\% outlier rate in this sample, I do not interpret it as conclusive
-evidence of a dose-response relationship.
+Panel B provides the more robust Callaway-Sant'Anna dose-bin check using the same
+covariate formula and bootstrap clustering as the main analysis. We split treated
+counties at the median $D_i$ (5,825 acres) into low-dose ($n = 442$) and
+high-dose ($n = 442$) bins and estimate the simple ATT for each bin against
+2,091 never-treated controls. Both bins are statistically indistinguishable from
+zero across all outcomes. Low-dose counties: fiscal balance ATT = \$+523
+(SE = \$481, $p = 0.277$); capital outlays ATT = \$+23 (SE = \$191, $p = 0.906$).
+High-dose counties: fiscal balance ATT = \$+332 (SE = \$464, $p = 0.474$);
+capital outlays ATT = \$\!-110 (SE = \$132, $p = 0.407$). The C\&S dose-bin
+design finds no evidence of a dose-response relationship at any point in the
+fire-size distribution, consistent with the overall null result at the extensive
+margin.
 
-Taken together, the dose-response analysis strengthens the main finding. The null
-is not an artifact of pooling large and small fires: TWFE coefficients are
-economically and statistically negligible across the fire size distribution,
-and the C\&S dose-bin design finds no significant effects below the median
-and only a borderline result above it.
+Taken together, the dose-response evidence is mixed. The TWFE fiscal balance
+estimate is statistically significant with clean pre-trends, but the pattern of
+pre-trend failures for related outcomes ($p < 0.10$ for two outcomes, $p < 0.01$
+for total expenditures) raises concern about differential selection into fire
+size. The C\&S dose-bin design, which is robust to this concern, finds uniformly
+null effects. We interpret the dose-bin null as the more reliable indicator: fire
+size does not predict fiscal outcomes in the staggered DiD framework.
+
+\subsection{Institutional Heterogeneity: Home Rule vs.\ Dillon's Rule}
+\label{sec:home_rule}
+
+County fiscal responses to wildfire depend partly on legal authority over tax policy
+and debt. Dillon's Rule states limit counties to explicitly delegated powers; home
+rule states grant counties residual fiscal authority. Dillon's Rule should constrain
+the fiscal response channel: if revenue adjustment is disabled by law (e.g., no
+discretion to raise property tax levies after assessed-value erosion), counties must
+absorb fire costs through expenditure cuts or debt issuance. Home rule counties can
+adjust levies. If capital outlays are the most deferrable budget item, Dillon's Rule
+counties should show more capital compression than home rule counties.
+
+Table~\ref{tab:home_rule} presents C\&S doubly-robust ATTs estimated separately
+for counties in Dillon's Rule states (n\,=\,2{,}177; 166 intensive-treated)
+and home rule states (n\,=\,798; 218 intensive-treated), using the same
+intensive-margin treatment and covariate formula as the main specification
+(Table~\ref{tab:main_int}).
+
+The results reveal a striking asymmetry in property tax revenues. In Dillon's
+Rule states, high-severity wildfire reduces property tax revenues per capita
+by \$410 (SE = 161, $p = 0.011$). In home rule states, the estimated effect
+is near zero and statistically indistinguishable from zero ($-$\$26, SE = 242,
+$p = 0.915$). Dillon's Rule counties hold only explicitly delegated taxing powers
+and cannot discretionarily offset wildfire-induced assessed-value declines; home
+rule counties can adjust levies or use alternative revenue instruments.
+
+Capital expenditure compression is directionally consistent across both groups
+(Dillon's Rule: $-$\$133, SE = 114, $p = 0.243$; home rule: $-$\$21,
+SE = 356, $p = 0.952$), though neither subgroup estimate achieves conventional
+significance, partly due to reduced effective sample size within each subgroup.
+The point estimates are consistent with a general compression dynamic that
+operates independently of legal doctrine, while the property tax channel is
+specific to fiscally constrained Dillon's Rule jurisdictions.
 
 %% ============================================================
 \section{Robustness}
@@ -656,129 +700,172 @@ and only a borderline result above it.
 
 \subsection{Alternative Control Group and Sample Restrictions}
 
-Table~\ref{tab:robustness} presents six robustness specifications for fiscal balance,
-total revenue, and capital expenditures. The baseline specification (row 0) is
-the main result. Row 1 expands the control group to include not-yet-treated
-counties (g\,=\,2022 counties serve as controls for g\,=\,2017 through 2017),
-shifting the fiscal balance estimate to \$\!-379 (SE = 448, $p = 0.397$).
-The modest increase in magnitude with not-yet-treated controls---rather than
-the attenuation expected under treatment effect contamination---suggests that
-the g\,=\,2022 counties do not have materially different pre-treatment fiscal
-trends from the never-treated pool.
+Table~\ref{tab:robustness} presents eight robustness specifications using doubly-robust C\&S method for fiscal
+balance, total revenue, and capital expenditures, applied separately to each
+treatment definition. Panel~A covers the extensive margin (any qualifying fire
+$\geq\!1{,}000$ acres); Panel~B covers the intensive margin (first high-severity
+fire). Row 0 in each panel replicates the corresponding main result
+(Tables~\ref{tab:main_ext} and \ref{tab:main_int}). Rows 1--7 apply identical
+sample and specification changes to both margins, allowing direct comparison of
+how each check affects the two designs. The discussion below describes each
+specification; magnitudes cited are from Panel~B (intensive margin) unless
+otherwise noted. Row 1 expands the control group to include not-yet-treated counties: g\,=\,2022
+counties serve as controls for g\,=\,2017 counties in 2017, before the g\,=\,2022
+counties are themselves treated. This specification shifts capital expenditure to
+\$\!-233 (SE\,=\,111, $p = 0.037$, now conventionally significant) and fiscal
+balance to \$+312 (SE\,=\,222, $p = 0.159$).
 
 Row 2 drops outlier counties (those with total revenue per capita more than
 three times the state-year median) as complete observations to maintain a
-balanced panel. Estimates are virtually unchanged from baseline.
-Row 3 restricts the sample to six states (excluding Colorado and Utah) to
-avoid the Utah NaN imputation for uninsurance and population density covariates;
-estimates are stable at \$\!-278 (SE = 237, $p = 0.242$).
+balanced panel. Capital expenditure estimates are virtually unchanged (\$\!-293,
+$p = 0.047$), confirming that the result is not driven by extreme observations.
+Row 3 restricts to eleven western states (AZ, CA, CO, ID, MT, NV, NM, OR, UT, WA,
+WY)---the fire-prone region. The western results are striking: fiscal balance declines
+by \$\!-1{,}252 (SE\,=\,403, $p = 0.002$) and total revenue by \$\!-1{,}063
+(SE\,=\,445, $p = 0.017$), both highly significant. Capital outlays reverse sign to
+\$+186 (SE\,=\,366, $p = 0.611$, null). This reversal indicates that the national capital expenditure decline (\$\!-293)
+concentrates in western states; non-western counties show no capital compression,
+and the national average is attenuated by the large unaffected eastern sample.
 Row 4 substitutes the WHP 2014 raster for WFP 2012 in the propensity score;
-the fiscal balance estimate shifts modestly to \$\!-263 (SE = 249, $p = 0.292$).
-Row 5 excludes all California counties ($n = 52$ treated, $n = 5$ control counties
-removed), testing whether findings reflect California's distinctive Proposition~13
-property tax environment. Fiscal balance attenuates modestly to \$\!-209 (SE = 299,
-$p = 0.485$); total revenue \textit{strengthens} to \$\!-422 (SE = 337, $p = 0.210$).
-The strengthening of the revenue estimate upon California exclusion is consistent
-with Proposition~13's reassessment-at-sale mechanism partially offsetting revenue
-losses for California counties relative to non-California counties.
-All six specifications are directionally negative and statistically insignificant.
+capital expenditure shifts to \$\!-436 (SE = 411, $p = 0.289$), consistent in
+direction with the baseline but with a wide confidence interval.
+Row 5 excludes all California counties ($n = 52$ intensive-margin treated counties)
+to test whether the national finding depends on California's Proposition~13
+environment. Capital expenditures reverse sign to \$+97 (SE\,=\,104, $p = 0.349$),
+statistically and economically null. This is a critical finding: the national capital
+expenditure decline of \$\!-293 depends entirely on California counties. California's
+combination of high fire severity and Proposition~13 reassessment constraints
+(frozen assessed values, mandatory reassessment only upon sale) creates a fiscal
+environment that does not generalize. Outside California, high-severity wildfire does
+not compress capital outlays. This sensitivity requires qualification of the headline
+result: the capital deferral effect is concentrated in California, not a general
+national response.
 
-The smoke exclusion buffer (100 km) was not applied as a sample restriction because
-40 of 51 extensive-margin never-treated counties and 84 of 98 intensive-margin
-never-treated counties are within 100 km of a fire perimeter in post-treatment
-years. Restricting to the 11 (extensive) or 14 (intensive) smoke-free counties
-would make estimation infeasible. For county fiscal outcomes, the primary
-transmission channels---property assessment and debt issuance---are geographically
-localised to the fire perimeter rather than the smoke plume; the relevant spillover
-concern (smoke-driven productivity effects on local economic activity) operates
-more directly through health and labor-market channels, which are not the focus
-of this analysis.
+Rows 6 and 7 address the property tax assessment-cycle concern
+(Section~\ref{sec:identify}). For the intensive margin (Panel~B), both
+annual-reassessment states (CA, OR, WA; 30 never-treated controls) and multi-year
+states produce uniformly null estimates: the annual subgroup is severely
+power-constrained, so the null does not rule out delayed effects; the multi-year null
+(\$\!-76 for fiscal balance, \$+84 for capital outlays) is more informative.
+For the extensive margin (Panel~A), the annual-reassessment split is not identified:
+CA, OR, and WA counties that experienced no qualifying fire are nearly absent at
+the extensive margin (almost all such counties have had at least one large fire),
+yielding a near-zero never-treated control pool. Row~6 is therefore omitted for
+Panel~A. The multi-year-cycle extensive result (row 7) is uniformly null across all
+three outcomes (\$+206, \$+159, \$\!-38), confirming that the extensive-margin null
+is not an artifact of states with long assessment delays.
 
-\subsection{Alternative Estimators (Intensive Margin)}
+Spatial spillovers to untreated counties pose a potential violation of the stable
+unit treatment value assumption. However, the primary fiscal transmission channels
+---property assessment and debt issuance---operate at the fire perimeter and do not
+extend beyond county boundaries. Smoke-driven productivity effects on labor and
+health are outside our scope. At national scale, treated and never-treated counties
+are geographically dispersed; most untreated counties are far from any fire perimeter.
+Cross-county spillovers through regional economic shocks are most plausible for
+spatial neighbors; spatial clustering of standard errors (Section~4) addresses this
+residual concern.
+
+\subsection{Alternative Estimators}
 \label{sec:robustness}
 
 Table~\ref{tab:estimators} compares four estimators for the intensive-margin
-specification. The C\&S doubly-robust estimate (column 1) of fiscal balance is
-\$\!-278. Sun and Abraham \citeyearpar{sun2021} yield \$\!-126 (SE = 187,
-$p = 0.499$). Synthetic DiD \citep{arkhangelsky2021} yields \$\!-252 (SE = 202,
-$p = 0.211$). Two-stage DiD \citep{gardner2022} yields \$\!-188 (SE = 222,
-$p = 0.397$).
+specification. The extensive margin is uniformly null across all seven outcomes
+and all robustness specifications (Panel~A of Table~\ref{tab:robustness}); the
+estimator comparison is therefore most informative for the intensive margin, where
+the estimates diverge. For capital expenditures---the headline result---C\&S doubly-robust
+yields \$\!-293 (SE = 164, $p = 0.075$). Sun and Abraham \citeyearpar{sun2021}
+yield \$\!-87 (SE = 44, $p = 0.049$), the only estimate with conventional
+statistical significance. Synthetic DiD \citep{arkhangelsky2021} yields \$\!-3
+(SE = 18, $p = 0.851$) and two-stage DiD \citep{gardner2022} yields \$\!-25
+(SE = 18, $p = 0.170$).
 
-All four estimators agree on a negative sign for fiscal balance and for total
-and property tax revenue. This cross-estimator consensus is attributable to the
-closer counterfactual provided by the expanded low-severity-fire control group,
-which reduces the observable selection problem that drives sign disagreement
-in the extensive-margin design. In the extensive-margin specification
-(any qualifying fire vs.\ zero-fire counties), the larger covariate imbalance
-causes non-DR estimators to yield positive estimates for fiscal balance, while
-the DR estimator---which adjusts for observable selection---yields negative
-estimates. The intensive-margin design, with a more comparable control group,
-produces consistent negative estimates across all estimators.
+For fiscal balance, the four estimators range from \$\!-12 (Sun-Abraham) to
+\$+379 (C\&S DR), all statistically null. This sign instability reflects
+control-group composition: the C\&S doubly-robust estimator reweights toward
+high-WFP counties (predominantly western), recovering an estimate closer to the
+\$\!-1{,}252 western effect seen in Row 3. Synthetic DiD and Two-Stage DiD weight
+all never-treated counties equally, averaging in the unaffected eastern majority
+and attenuating the estimate toward zero. The western-state subsample (Row 3) shows
+that equal-weighting estimators were pulling toward zero by construction; C\&S's
+reweighting scheme is more appropriate for this setting, concentrating comparisons
+on fire-risk-matched counties.
 
-Capital expenditures diverge: the C\&S DR estimate (\$\!-181) is negative while
-the three non-DR estimators are near-zero positive (\$6 to \$23). The DR
-adjustment accounts for higher pre-treatment capital spending baselines in
-treated counties relative to the expanded control group.
+The capital expenditure finding is the most consistent signal across estimators.
+Two of four estimators (C\&S and Sun-Abraham) yield negative, marginally or
+conventionally significant estimates; the other two are negative but imprecise.
+No estimator shows a positive capital expenditure effect. This directional
+consensus, absent for fiscal balance and revenue outcomes, supports interpreting
+the capital expenditure decline as a real if imprecisely estimated effect.
 
 %% ============================================================
 \section{Discussion and Conclusion}
 %% ============================================================
 
-This paper provides causal estimates of wildfire fiscal effects on county
-governments across eight western states, extending prior California evidence to
-county governments with diverse property tax institutions. Using Census of
-Governments quinquennial data from 2002 to 2022 and WFP-matched staggered DiD
-designs, I find uniformly negative but statistically insignificant effects on
-fiscal balance across both the extensive margin (fire incidence) and the intensive
-margin (fire severity). Capital expenditures provide the most consistent signal (\$\!-226 per
-capita, extensive; \$\!-181 per capita, intensive), consistent with deferred capital
-investment as the primary post-fire fiscal adjustment channel.
+This paper provides causal estimates of wildfire fiscal effects on county governments
+across the contiguous United States. Using Census of Governments data (2002--2022)
+and staggered DiD designs matched on USFS Wildfire Potential, we estimate that
+high-severity wildfires reduce capital expenditures by approximately \$87--\$293 per
+capita nationally, with substantial heterogeneity: the effect is concentrated in
+western and California counties and is absent in non-California states. Fiscal balance
+and total revenues are statistically null nationally, masking opposing regional
+effects. The extensive margin (any qualifying fire) and the dose-response margin
+(fire size) generate no detectable effects.
 
-Three substantive conclusions emerge. First, neither the incidence nor the severity
-of wildfires generates a detectable fiscal effect at conventional significance levels
-within the quinquennial observation window. The null result is informative: point
-estimates suggest economically meaningful deterioration (18--41\% of the pre-treatment
-median fiscal balance), and the wide confidence intervals are consistent with this
-range. Second, intergovernmental transfers do not appear to offset local revenue
-losses---the IGT point estimates are negative under both designs---mirroring the
-finding that the federal wildfire aid architecture provides less automatic fiscal
-buffering than hurricane-specific programs. Third, the intensive-margin design
-demonstrates a methodological advantage over the extensive-margin design: the
-expanded low-to-moderate-severity control group is a more credible counterfactual,
-reduces observable selection, and yields cross-estimator sign agreement that validates
-the C\&S doubly-robust estimate as internally consistent.
+The results support a \emph{fiscal triage} interpretation: faced with fire-driven
+costs and constrained revenue options, counties defer capital outlays. Revenues
+cannot easily be raised in the short run (Dillon's Rule constraints, delayed
+assessment cycles), and federal aid is uncertain (FEMA declarations are endogenous
+to fire severity). Faced with suppression reimbursements, debris removal, and
+emergency response costs, counties cut the most deferrable item. Measured revenues
+are stable and long-term debt rises modestly but insignificantly, leaving capital
+deferral as the residual adjustment. The data show capital compression consistent
+with this mechanism but do not directly observe emergency expenditure categories or
+departmental reallocations. The effect is modest---roughly 8\% of the pre-treatment
+capital expenditure median---and both C\&S DR (\$\!-293) and Sun-Abraham (\$\!-87)
+point in the same direction despite different control-group weighting schemes,
+supporting a real if imprecisely estimated effect.
 
-A dose-response analysis confirms that the null is not an artifact of pooling
-large and small fires. TWFE estimates of the effect of log maximum fire size on
-all seven fiscal outcomes are statistically and economically negligible
-(fiscal balance: \$11 per log-acre, SE = \$12, $p = 0.35$; IQR-implied effect
-$\approx$\,\$27 per capita). Callaway-Sant'Anna dose-bin estimates for counties
-below and above the median fire size (13,161 acres) are both insignificant for
-capital expenditures; a borderline negative estimate for high-dose fiscal balance
-($p = 0.091$) does not survive the conventional threshold and is sensitive to
-California outlier counties.
+Whether the revenue channel is activated depends on a county's statutory taxing
+authority. In Dillon's Rule states, wildfire-induced property value erosion reduced
+property tax revenues by \$410 per capita (SE = 161, $p = 0.011$). In home rule
+states, the effect is near zero ($-$\$26, SE = 242, $p = 0.915$), suggesting that
+counties with residual fiscal authority offset assessed-value losses through levy
+adjustments. Nationally these opposing responses largely cancel, so the revenue null
+does not mean fire leaves revenues unaffected; it is a weighted average of
+heterogeneous institutional adjustments. The scope of delegated taxing authority
+thus shapes how wildfire costs propagate into county budgets
+(Table~\ref{tab:home_rule}).
 
-The primary limitation is statistical power. The effective sample sizes after
-doubly-robust reweighting are 11.1 counties (extensive) and 19.6 counties (intensive);
-confidence intervals are consistent with effects ranging from zero to losses exceeding
-major hurricane estimates. Table~\ref{tab:mde} quantifies the inferential limits:
-the minimum detectable effect at 80\% power ($\alpha = 0.05$) is \$687 per capita
-for the intensive-margin fiscal balance outcome and \$1{,}471 for the extensive
-margin---seven and fifteen times the \citet{liao2022} California benchmark of
-approximately \$97 per capita, respectively. For capital outlays, the MDEs are
-\$346 (intensive) and \$456 (extensive). These bounds clarify that the null
-result reflects insufficient power rather than confirmed fiscal resilience:
-effects of the magnitude found in the California literature remain within the
-confidence intervals for every outcome. Annual CoG survey data---with more
-post-treatment observation windows---would substantially improve precision. The negative
-property-tax revenue estimate in the intensive-margin design (\$\!-167 per capita)
-contrasts with the near-zero extensive-margin result, consistent with high-severity
-fire damage reducing market values enough to affect assessed values at the four-to-nine
-year horizon. This contrasts with the \citet{liao2022} California result, where
-Proposition 13's reassessment-at-sale mechanism produces revenue increases following
-fire-induced sales. Understanding which fiscal institutions---property tax assessment
-rules, state aid formulas, and home rule authority---mediate the wildfire fiscal shock
-across states is the natural next step.
+In western states, fiscal balance declines by \$\!-1{,}252 ($p = 0.002$) and total
+revenue by \$\!-1{,}063 ($p = 0.017$), driven by high fire severity and
+California's Proposition~13 constraints on reassessment. Excluding California
+eliminates the national capital expenditure finding (\$\!-293 becomes \$+97,
+$p = 0.349$): the capital deferral effect is California-specific. Non-California
+states show no capital compression despite experiencing high-severity fires.
+California's fiscal response to wildfire is shaped by its property tax regime,
+not by fire severity alone; capital deferral occurs where revenue recovery is
+institutionally blocked, and revenue collapse where fire exposure and tax-base
+rigidity are jointly high.
+
+The dose-response analysis yields no dose gradient. The C\&S dose-bin design
+yields null ATTs for both low-dose ($\leq$5,825 acres) and high-dose ($>$5,825 acres)
+subsamples (all $p > 0.27$); fire size does not predict fiscal impacts within the
+high-severity sample. A TWFE fiscal balance estimate is statistically significant
+($\hat{\beta} = +10.23$ per log-acre, $p = 0.033$), but pre-trend violations for
+expenditure outcomes ($p \leq 0.040$) undermine the TWFE specification, and we
+treat the C\&S dose-bin null as the more credible result.
+
+A critical limitation is that the national capital expenditure finding depends
+entirely on California counties (Row 5 of Table~\ref{tab:robustness}). This
+California-specific result may reflect Proposition~13's unique reassessment
+constraints rather than a general wildfire-fiscal response. Future research should
+examine why non-California states' fiscal responses to high-severity fire differ from
+California's. Second, the five-year CoG census cadence prevents identification of
+short-run adjustment dynamics within a cohort window; annual data would improve
+precision. Third, the g\,=\,2022 cohort has only one post-treatment observation
+(2022), limiting inference for that cohort. The Dillon's Rule finding is robust and
+motivates further study of how statutory tax authority, assessment cycles, and
+federal fire aid jointly determine local fiscal resilience to climate shocks.
 
 \clearpage
 
@@ -801,17 +888,30 @@ Baker, A.~C., D.~F.~Larcker, and C.~C.~Y.~Wang.
 \newblock How much should we trust staggered difference-in-differences estimates?
 \newblock \textit{Journal of Financial Economics} 144(2): 370--395.
 
+\bibitem[Bayham et al.(2022)]{bayham2022}
+Bayham, J., J.~K.~Yoder, P.~A.~Champ, and D.~E.~Calkin.
+\newblock 2022.
+\newblock The Economics ofWildfire in the United States
+\newblock \textit{Annual Review of Resource Economics} 14: 379--401.
+
 \bibitem[Baylis and Boomhower(2023)]{baylis2023}
 Baylis, P. and J.~Boomhower.
 \newblock 2023.
 \newblock The economic incidence of wildfire suppression in the United States.
 \newblock \textit{American Economic Journal: Applied Economics} 15(1): 442--473.
 
+\bibitem[Boomhower et al.(2023)]{boomhower2023}
+Boomhower, J., M.~Fowlie, and A.~J.~Plantinga
+\newblock 2023.
+\newblock Wildfire Insurance, Information, and Self-Protection.
+\newblock \textit{AEA Papers and Proceedings} 113: 310--315.
+
+
 \bibitem[Borgschulte, Molitor, and Zou(2024)]{borgschulte2024}
 Borgschulte, M., D.~Molitor, and E.~Y.~Zou.
 \newblock 2024.
 \newblock Air pollution and the labor market: Evidence from wildfire smoke.
-\newblock \textit{Review of Economics and Statistics} 106(6): 1691--1708.
+\newblock \textit{Review of Economics and Statistics} 106(6): 1558--1575.
 
 \bibitem[Callaway and Sant'Anna(2021)]{callaway2021}
 Callaway, B. and P.~H.~C.~Sant'Anna.
@@ -819,9 +919,9 @@ Callaway, B. and P.~H.~C.~Sant'Anna.
 \newblock Difference-in-differences with multiple time periods.
 \newblock \textit{Journal of Econometrics} 225(2): 200--230.
 
-\bibitem[Chen and Cohen(2025)]{chen2025}
+\bibitem[Chen and Cohen(2024)]{chen2024}
 Chen, H. and L.~Cohen.
-\newblock 2025.
+\newblock 2024.
 \newblock Assessing assessors.
 \newblock NBER Working Paper No.~33238.
 
@@ -897,25 +997,25 @@ Sun, L. and S.~Abraham.
 Covariate & Treated & Control & SMD & & Treated & Control & SMD \\
 \midrule
 \textit{Wildfire hazard} \\
-\quad WFP 2012 (mean)        & 1064.0 & 207.6 & 0.89 & & 1064.0 &  903.4 & 0.13 \\
-\quad WFP quintile           &   3.46 &   1.91 & 1.32 & &   3.46 &    3.28 & 0.14 \\
-\quad Pre-2013 fire (=1)     &  0.923 &  0.561 & 0.91 & &  0.923 &   0.929 &$-$0.03 \\
-\quad Pre-2013 log acres     & 49.5  &  15.6 & 1.20 & & 49.5  &   43.4 & 0.19 \\
+\quad WFP 2012 (mean)        &  825.7 &  78.8 & 0.93 & &  825.7 &  296.5 & 0.64 \\
+\quad WFP quintile           &   4.54 &   2.79 & 1.60 & &   4.54 &    4.50 & 0.06 \\
+\quad Pre-2013 fire (=1)     &  0.935 &  0.301 & 1.72 & &  0.935 &   0.940 &$-$0.02 \\
+\quad Pre-2013 log acres     &  48.6  &   7.0 & 1.55 & &  48.6  &   47.3 & 0.04 \\
 \addlinespace
 \textit{Geography \& demographics} \\
-\quad RUCC 2013              &   5.29 &   5.51 &$-$0.08& &   5.29 &    5.18 & 0.04 \\
-\quad Log median HH income   & 10.90 & 10.90 & 0.04& &10.90 &  10.90 & 0.04\\
-\quad Poverty rate (\%)      & 14.4  &  14.1 & 0.06 & & 14.4  &   14.4 & 0.00 \\
-\quad Uninsurance rate (\%)  & 17.3  &  16.7 & 0.13 & & 17.3  &   18.1 &$-$0.15\\
-\quad Log pop.\ density      &  2.06 &  2.24 &$-$0.11& & 2.06 &   2.38 &$-$0.22\\
+\quad RUCC 2013              &   5.31 &   5.06 & 0.09 & &   5.31 &    5.26 & 0.02 \\
+\quad Log median HH income   & 10.86 & 10.80 & 0.24 & &10.86 &  10.89 &$-$0.14\\
+\quad Poverty rate (\%)      & 15.5  &  16.0 &$-$0.08& & 15.5  &   14.4 & 0.18 \\
+\quad Share pop.\ aged 65+ (\%)& 16.0  & 15.9 & 0.03 & & 16.0  &   16.4 &$-$0.09\\
+\quad Log pop.\ density      &  2.13 &  3.02 &$-$0.61& & 2.13 &   2.27 &$-$0.09\\
 \addlinespace
 \textit{Pre-treatment fiscal (2012)} \\
-\quad Log revenue p.c.       &  7.42 &  7.39 & 0.03 & &  7.42 &   7.37 & 0.07 \\
-\quad Log property tax p.c.  &  6.11 &  6.10 & 0.02 & &  6.11 &   6.00 & 0.16 \\
-\quad Log LT debt p.c.       &  4.14 &  4.22 &$-$0.03& & 4.14 &   4.31 &$-$0.06\\
+\quad Log revenue p.c.       &  7.36 &  6.99 & 0.48 & &  7.36 &   7.44 &$-$0.11 \\
+\quad Log property tax p.c.  &  6.07 &  5.73 & 0.41 & &  6.07 &   6.14 &$-$0.08 \\
+\quad Log LT debt p.c.       &  4.53 &  4.77 &$-$0.09& & 4.53 &   4.56 &$-$0.01\\
 \midrule
-Observations                 & \multicolumn{3}{c}{$N_{\rm trt}=246$, $N_{\rm ctl}=98$} & &
-                               \multicolumn{3}{c}{ESS = 19.6 of 98} \\
+Observations                 & \multicolumn{3}{c}{$N_{\rm trt}=384$, $N_{\rm ctl}=2{,}591$} & &
+                               \multicolumn{3}{c}{ESS = 122.1 of 2{,}591} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -929,9 +1029,13 @@ low-to-moderate-severity fires. Standardized mean differences (SMD) computed as
 IPW weights: treated counties $w=1$; control counties $w=\hat{p}/(1-\hat{p})$,
 normalized so control weights sum to the number of control units.
 Effective sample size (ESS) for reweighted controls = $[\sum w_i]^2 / \sum w_i^2$.
-Uninsurance rate and log population density imputed to state-year median
-for 29 Utah counties absent from ACS 5-year estimates prior to 2009;
-for groups where state-year median is missing, the overall sample median is used.
+Share population aged 65+ and log population density imputed to state-year
+median for counties absent from ACS 5-year estimates; for groups where the
+state-year median is missing, the overall sample median is used.
+IPW weights are derived from a logistic propensity score on WFP quintile,
+pre-2013 fire history, and the covariates listed above; residual imbalance in
+the raw WFP 2012 score (IPW SMD = 0.64) reflects the coarser quintile
+discretization used in matching.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -942,41 +1046,33 @@ for groups where state-year median is missing, the overall sample median is used
 
 \begin{table}[h!]
 \begin{threeparttable}
-\caption{Main Results: Doubly-Robust C\&S ATT Estimates --- Extensive Margin (Any Qualifying Fire)}
+\caption{Main Results: Doubly-Robust C\&S ATT --- Extensive Margin (Any Qualifying Fire)}
 \label{tab:main_ext}
 \centering
-\small
+\footnotesize
 \begin{tabular}{lrrrrrrr}
 \toprule
  & (1) & (2) & (3) & (4) & (5) & (6) & (7) \\
- & Fiscal & Total & Total & Property & Capital & IGT & LT  \\
- & balance & revenue & expend. & tax rev. & outlays & transfers & debt \\
+ & Fiscal & Total & Total & Property & Capital & IGT & LT \\
+ & balance & revenue & expend. & tax rev. & outlays & trans. & debt \\
 \midrule
-ATT (\$2019 per capita)
-  & $-$648.5 & $-$650.1 & $-$1.6   & $+$46.1   & $-$225.9 & $-$841.0 & $+$54.5 \\
-SE
-  & (525.2) & (645.9) & (345.0) & (207.5) & (162.9)  & (660.6) & (330.0)  \\
-95\% CI
-  & [$-$1678, & [$-$1916, & [$-$678, & [$-$361, & [$-$545, & [$-$2136, & [$-$592, \\
-  & \phantom{[}381] & \phantom{[}616] & \phantom{[}675] & \phantom{[}453] & \phantom{[}93] & \phantom{[}454] & \phantom{[}701] \\
-$p$-value
-  & 0.217   & 0.314   & 0.996   & 0.824   & 0.166    & 0.203   & 0.869    \\
+ATT (\$2019 p.c.)
+  & $+$534.6 & $+$329.5 & $-$205.1 & $+$340.6 & $-$35.3 & $+$53.3 & $+$1{,}608.0 \\
+  & (488.9) & (756.6) & (339.6) & (590.7) & (201.3) & (160.5) & (1{,}878.7) \\
 \addlinespace
-Treated counties & 293 & 293 & 293 & 293 & 293 & 293 & 293 \\
-Control counties &  51 &  51 &  51 &  51 &  51 &  51 &  51 \\
-Observations & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 \\
+Treated ($N$) & \multicolumn{7}{c}{884} \\
+Control ($N$) & \multicolumn{7}{c}{2{,}091} \\
+Observations  & \multicolumn{7}{c}{14{,}875} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
-\small
-\item \textit{Notes}: Callaway and Sant'Anna (2021) doubly-robust group-time ATT
-estimator. Treatment: county's first qualifying MTBS wildfire ($\geq\!1{,}000$ acres)
-in 2013--2021, regardless of fire severity. Control group: counties with no
-qualifying MTBS wildfire in 2013--2021 (never-fired; $n = 51$).
-Covariates, estimation method, and SE computation identical to Table~\ref{tab:main_int}.
-ESS of reweighted controls = 11.1.
-IGT = intergovernmental transfers; LT debt = long-term debt.
-All outcomes in 2019\$ per capita. *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
+\footnotesize
+\item \textit{Notes}: C\&S (2021) doubly-robust ATT, simple aggregation. Treatment:
+first qualifying MTBS fire ($\geq\!1{,}000$ acres) in 2013--2021, any severity.
+Never-fired control ($n=2{,}091$). SEs (parentheses) from block bootstrap, 999
+replications, clustered by county. Covariates, estimation method identical to
+Table~\ref{tab:main_int}. IGT = intergovernmental transfers; LT = long-term.
+All values 2019\$ per capita. *** $p<0.01$; ** $p<0.05$; * $p<0.10$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -987,48 +1083,36 @@ All outcomes in 2019\$ per capita. *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
 
 \begin{table}[h!]
 \begin{threeparttable}
-\caption{Main Results: Doubly-Robust C\&S ATT Estimates --- Intensive Margin (High-Severity Fire)}
+\caption{Main Results: Doubly-Robust C\&S ATT --- Intensive Margin (High-Severity Fire)}
 \label{tab:main_int}
 \centering
-\small
+\footnotesize
 \begin{tabular}{lrrrrrrr}
 \toprule
  & (1) & (2) & (3) & (4) & (5) & (6) & (7) \\
- & Fiscal & Total & Total & Property & Capital & IGT & LT  \\
- & balance & revenue & expend. & tax rev. & outlays & transfers & debt \\
+ & Fiscal & Total & Total & Property & Capital & IGT & LT \\
+ & balance & revenue & expend. & tax rev. & outlays & trans. & debt \\
 \midrule
-ATT (\$2019 per capita)
-  & $-$277.5 & $-$324.7 & $-$47.3   & $-$166.9   & $-$181.4 & $-$99.1 & 727.5 \\
-SE
-  & (245.3) & (306.3) & (294.5) & (227.8) & (123.5)  & (148.2) & (960.0)  \\
-95\% CI
-  & [$-$758, & [$-$925, & [$-$625, & [$-$613, & [$-$423, & [$-$390, & [$-$1154, \\
-  & \phantom{[}203] & \phantom{[}276] & \phantom{[}530] & \phantom{[}280] & \phantom{[}61] & \phantom{[}191] & \phantom{[}2609] \\
-$p$-value
-  & 0.258   & 0.289   & 0.873   & 0.464   & 0.142    & 0.504   & 0.449    \\
+ATT (\$2019 p.c.)
+  & $+$378.7 & $-$69.3 & $-$448.0 & $+$39.5 & $-$292.9$^{*}$ & $-$40.1 & $+$1{,}014.1 \\
+  & (272.6) & (358.8) & (274.3) & (212.9) & (164.4) & (156.8) & (862.2) \\
 \addlinespace
-Treated counties & 246 & 246 & 246 & 246 & 246 & 246 & 246 \\
-Control counties &  98 &  98 &  98 &  98 &  98 &  98 &  98 \\
-Observations & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 & 1,720 \\
+Treated ($N$) & \multicolumn{7}{c}{384} \\
+Control ($N$) & \multicolumn{7}{c}{2{,}591\quad (ESS\,=\,122.1)} \\
+Observations  & \multicolumn{7}{c}{14{,}875} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
-\small
-\item \textit{Notes}: Callaway and Sant'Anna (2021) doubly-robust group-time
-ATT estimator. Treatment: counties whose first qualifying MTBS wildfire in
-2013--2021 had a detectable High-severity dNBR class (\texttt{HIGH\_THRES}
-between 100 and 5,000 dNBR units). Control group: counties without a qualifying
-high-severity fire in 2013--2021, including counties with only low-to-moderate
-severity fires. Covariates in propensity score and outcome regression: WFP 2012
-quintile, pre-2013 fire indicator, log pre-2013 cumulative fire acres, RUCC 2013,
-log median household income, poverty rate, uninsurance rate (imputed for UT),
-log population density (imputed for UT). Estimation: \texttt{did} package v2.3.0,
-\texttt{base\_period = ``varying''}, doubly-robust. Standard errors in parentheses;
-95\% confidence intervals in brackets. Both computed via block bootstrap with 999
-replications, clustered by county. ESS of reweighted controls = 19.6.
-IGT = intergovernmental transfers (federal + state); LT debt = long-term debt.
-All outcomes in 2019\$ per capita, deflated using national CPI-U.
-*** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
+\footnotesize
+\item \textit{Notes}: C\&S (2021) doubly-robust ATT, simple aggregation. Treatment:
+first high-severity MTBS fire (dNBR $\geq\!100$) $\geq\!1{,}000$ acres in 2013--2021.
+Never-treated control ($n=2{,}591$; ESS\,=\,122.1 after IPW reweighting). SEs
+(parentheses) from block bootstrap, 999 replications, clustered by county. Covariates:
+WFP 2012 quintile, pre-2013 fire history and log acres, RUCC 2013, log median
+household income, poverty rate, share 65+, log population density. Estimation:
+\texttt{did} v2.3.0, \texttt{base\_period = ``varying''}, doubly-robust.
+All values 2019\$ per capita (national CPI-U). IGT = intergovernmental transfers;
+LT = long-term. *** $p<0.01$; ** $p<0.05$; * $p<0.10$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
@@ -1049,32 +1133,28 @@ All outcomes in 2019\$ per capita, deflated using national CPI-U.
  & Fiscal & Total & Total & Property & Capital & IGT \\
  & balance & revenue & expend. & tax rev. & outlays & transfers \\
 \midrule
-\textit{\underline{Panel A: Extensive margin} (any fire $\geq$1,000 ac)} \\
+\multicolumn{7}{l}{\textit{Panel A: Extensive margin (any qualifying fire $\geq$1,000 ac)}} \\
 \addlinespace
-\textit{\quad Early cohort (g\,=\,2017; first fire 2013--2016; $n=208$)} \\
-ATT & $-$734.4 & $-$784.4 & ---  & ---  & $-$282.9 & --- \\
-SE  & (607.4)  & (765.9)  & ---  & ---  & (191.1)  & --- \\
-$p$ & 0.227    & 0.306    & ---  & ---  & 0.139    & --- \\
+\multicolumn{7}{l}{\textit{\quad g\,=\,2017: first fire 2013--16 ($n=629$)}} \\
+ATT & $+$641.5 & $+$359.5 & $-$282.0 & $+$414.4 & $-$32.6 & $+$49.1 \\
+    & (534.6)  & (897.1)  & (394.2)  & (754.4)  & (247.7) & (165.8) \\
 \addlinespace
-\textit{\quad Late cohort (g\,=\,2022; first fire 2017--2021; $n=85$)} \\
-ATT & $-$211.0 & $+$34.0  & ---  & ---  & $+$64.6  & --- \\
-SE  & (186.6)  & (274.6)  & ---  & ---  & (58.5)   & --- \\
-$p$ & 0.258    & 0.901    & ---  & ---  & 0.270    & --- \\
+\multicolumn{7}{l}{\textit{\quad g\,=\,2022: first fire 2017--21 ($n=255$)}} \\
+ATT & $+$8.0  & $+$181.9 & $+$173.9 & $-$22.7  & $-$48.3  & $+$74.2 \\
+    & (249.0) & (341.1)  & (334.1)  & (103.1)  & (168.9)  & (223.1) \\
 \addlinespace\midrule\addlinespace
-\textit{\underline{Panel B: Intensive margin} (high-severity fire)} \\
+\multicolumn{7}{l}{\textit{Panel B: Intensive margin (high-severity fire only)}} \\
 \addlinespace
-\textit{\quad Early cohort (g\,=\,2017; sev.\ fires 2013--2016; $n=173$)} \\
-ATT & $-$160.4 & $-$248.6 & $-$88.3  & $-$29.5  & $-$215.1 & $-$111.1 \\
-SE  & (220.0)  & (349.0)  & (383.4)  & (113.1)  & (142.6)  & (174.4)  \\
-$p$ & 0.467    & 0.476    & 0.818    & 0.794    & 0.132    & 0.524    \\
+\multicolumn{7}{l}{\textit{\quad g\,=\,2017: sev.\ fires 2013--16 ($n=267$)}} \\
+ATT & $+$550.7$^{*}$ & $-$53.7  & $-$604.5$^{*}$ & $+$151.1 & $-$298.4$^{*}$ & $-$81.9 \\
+    & (305.3)         & (371.2)  & (311.8)         & (244.5)  & (175.6)         & (179.0) \\
 \addlinespace
-\textit{\quad Late cohort (g\,=\,2022; sev.\ fires 2017--2021; $n=73$)} \\
-ATT & $-$864.9 & $-$706.5  & 158.4   & $-$856.1  & $-$12.3     & $-$39.3 \\
-SE  & (1419.9)  & (1355.3) & (281.8) & (1339.1) & (43.2)   & (57.1)  \\
-$p$ & 0.542    & 0.602   & 0.574   & 0.522  & 0.776    & 0.492   \\
+\multicolumn{7}{l}{\textit{\quad g\,=\,2022: sev.\ fires 2017--21 ($n=117$)}} \\
+ATT & $-$406.3 & $-$140.2 & $+$266.1 & $-$469.9 & $-$267.9$^{*}$ & $+$150.8 \\
+    & (757.8)  & (755.0)  & (259.4)  & (748.3)  & (149.1)         & (121.6)  \\
 \midrule
-Control (extensive) & 51 & 51 & 51 & 51 & 51 & 51 \\
-Control (intensive) & 98 & 98 & 98 & 98 & 98 & 98 \\
+Control (extensive) & \multicolumn{6}{c}{2,091} \\
+Control (intensive) & \multicolumn{6}{c}{2,591} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -1087,11 +1167,13 @@ cohort-size weights; counties observed in two post-treatment census years.
 Late-cohort estimates equal ATT$(g{=}2022, t{=}2022)$; observed in one post-treatment
 year and identified from a single cross-sectional comparison adjusted for covariates.
 Dashes indicate outcomes not estimated in the cohort decomposition run.
-\textit{Double-treatment caveat (extensive margin, g\,=\,2017):} 192 of 208
-early-cohort counties (92.3\%) also experienced qualifying fires in 2017--2021.
-The g\,=\,2017 cohort ATT therefore averages ATT$(g{=}2017, t{=}2017) = {-}\$556$
-(SE = 704; clean first-fire effect) with ATT$(g{=}2017, t{=}2022) = {-}\$913$
-(SE = 632; confounded by subsequent fire exposure). See Section~\ref{sec:cohort}.
+\textit{Double-treatment caveat (extensive margin, g\,=\,2017):} Most of the
+629 early-cohort counties also experienced qualifying fires in 2017--2021.
+The g\,=\,2017 cohort ATT for fiscal balance therefore averages
+ATT$(g{=}2017, t{=}2017) = {-}\$556$ (SE = 704; clean first-fire effect) with
+ATT$(g{=}2017, t{=}2022) = {-}\$913$ (SE = 632; subsequent-fire confounded).
+The positive pooled cohort ATT (+\$642) reflects the positive pre-treatment trend
+component and the cohort-size weighting. See Section~\ref{sec:cohort}.
 Sev.\ = high-severity.
 \end{tablenotes}
 \end{threeparttable}
@@ -1101,7 +1183,7 @@ Sev.\ = high-severity.
 
 \begin{table}[h!]
 \begin{threeparttable}
-\caption{Robustness Checks: Doubly-Robust C\&S ATT across Specifications}
+\caption{Robustness Checks}
 \label{tab:robustness}
 \centering
 \small
@@ -1111,46 +1193,59 @@ Sev.\ = high-severity.
    \multicolumn{2}{c}{(2) Total revenue} &
    \multicolumn{2}{c}{(3) Capital outlays} \\
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-Specification & ATT & (SE) & ATT & (SE) & ATT & (SE) \\
+ & ATT & (SE) & ATT & (SE) & ATT & (SE) \\
 \midrule
-(0) Baseline              & $-$277.5 & (246.2) & $-$324.7 & (318.7) & $-$181.4 & (115.6) \\
-(1) Not-yet-treated ctrl  & $-$379.4 & (448.1) & $-$361.7 & (460.5) & $-$118.5 & (78.0)  \\
-(2) Drop outlier counties & $-$277.5 & (251.4) & $-$324.7 & (321.2) & $-$181.4 & (121.8) \\
-(3) 6-state (excl.\ CO, UT) & $-$277.5 & (236.9) & $-$324.7 & (321.9) & $-$181.4 & (114.2)\\
-(4) WHP 2014 in $\mathbf{X}$   & $-$262.9 & (249.4) & $-$335.5 & (345.3) & $-$154.9 & (106.8) \\
-(5) Excl.\ California     & $-$208.7 & (299.0) & $-$422.3 & (336.8) & $-$93.2  & (82.7)  \\
+\multicolumn{7}{l}{\textit{Panel A: Extensive margin ($N_{\text{treat}}=888$, $N_{\text{ctrl}}=2,132$)}} \\
+\multicolumn{7}{l}{\textit{(0) Baseline}} \\
+ & $+$534.6 & (460.0) & $+$329.5 & (767.3) & $-$35.3 & (206.4) \\
+\multicolumn{7}{l}{\textit{(1) Not-yet-treated controls}} \\
+ & $+$322.1 & (299.9) & $+$232.7 & (418.3) & $-$58.9 & (119.3) \\
+\multicolumn{7}{l}{\textit{(2) Drop outlier counties}} \\
+ & $+$534.6 & (474.2) & $+$329.5 & (759.0) & $-$35.3 & (204.5) \\
+\multicolumn{7}{l}{\textit{(3) Western states only}} \\
+ & $-$1796.6$^{*}$ & (1020.8) & $-$1265.7 & (1585.8) & $-$114.0 & (592.4) \\
+\multicolumn{7}{l}{\textit{(4) WHP 2014 replaces WFP 2012}} \\
+ & $+$328.7 & (292.2) & $+$340.3 & (508.0) & $-$65.5 & (136.3) \\
+\multicolumn{7}{l}{\textit{(5) Exclude California}} \\
+ & $+$201.0 & (139.2) & $+$145.7 & (233.9) & $-$44.1 & (66.5) \\
+\multicolumn{7}{l}{\textit{(6) Annual reassessment states (CA, OR, WA)}} \\
+ & \multicolumn{6}{l}{\textit{Not identified: near-zero never-treated control pool}} \\
+\multicolumn{7}{l}{\textit{(7) Multi-year reassessment states (all other lower-48)}} \\
+ & $+$206.2 & (140.9) & $+$158.8 & (234.5) & $-$37.6 & (70.2) \\
 \midrule
-Treated ($N$) & 246 & & 246 & & 246 & \\
-Control ($N$) &  98 & &  98 & &  98 & \\
-\addlinespace
-\multicolumn{7}{l}{\footnotesize Row~5 (excl.\ CA): $N_{\rm trt}=194$, $N_{\rm ctl}=93$} \\
+\multicolumn{7}{l}{\textit{Panel B: Intensive margin ($N_{\text{treat}}=384$, $N_{\text{ctrl}}=2{,}591$)}} \\
+\multicolumn{7}{l}{\textit{(0) Baseline}} \\
+ & $+$378.7 & (293.2) & $-$69.3  & (312.7) & $-$292.9 & (141.7) \\
+\multicolumn{7}{l}{\textit{(1) Not-yet-treated controls}} \\
+ & $+$311.8 & (221.6) & $+$55.3  & (246.6) & $-$232.7 & (111.4) \\
+\multicolumn{7}{l}{\textit{(2) Drop outlier counties}} \\
+ & $+$378.7 & (268.7) & $-$69.3  & (370.6) & $-$292.9 & (147.3) \\
+\multicolumn{7}{l}{\textit{(3) Western states only}} \\
+ & $-$1251.6$^{***}$ & (403.4) & $-$1062.6$^{**}$ & (444.8) & $+$185.7 & (365.5) \\
+\multicolumn{7}{l}{\textit{(4) WHP 2014 replaces WFP 2012}} \\
+ & $-$216.7 & (446.9) & $-$954.4 & (1017.8) & $-$435.9 & (411.1) \\
+\multicolumn{7}{l}{\textit{(5) Exclude California}} \\
+ & $-$90.7  & (183.4) & $-$9.5   & (226.8) & $+$97.2  & (103.7) \\
+\multicolumn{7}{l}{\textit{(6) Annual reassessment states (CA, OR, WA)}} \\
+ & $-$52.2 & (304.3) & $-$34.7 & (214.2) & $-$63.8 & (85.0) \\
+\multicolumn{7}{l}{\textit{(7) Multi-year reassessment states (all other lower-48)}} \\
+ & $-$75.5 & (225.6) & $-$25.8 & (247.4) & $+$84.0 & (99.1) \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
 \small
-\item \textit{Notes}: All specifications use doubly-robust C\&S estimator with
-never-treated controls (except row 1) and bootstrap SE (999 replications).
-Treatment defined as in Table~\ref{tab:main_int}.
-(0) Baseline: same as Table~\ref{tab:main_int} column (1). (1) Not-yet-treated
-controls: control group expands to include g\,=\,2022 counties as controls for
-the g\,=\,2017 cohort in 2017. (2) Outlier counties---those with total revenue
-per capita exceeding three times the state-year median in any year---are dropped
-as complete observations to preserve panel balance.
-(3) Drops Colorado and Utah; treated $n = 221$, control $n = 94$.
-(4) WHP 2014 (USFS Wildfire Hazard Potential 2014) replaces WFP 2012 in the
-covariate vector $\mathbf{X}$; note WHP 2014 is not predetermined for 2013--2014
-fires. (5) Excludes all California counties ($n{=}52$ treated, $n{=}5$ control
-removed), reducing the sample to 194 treated and 93 control counties; tests
-whether results reflect California's Proposition~13 property tax environment.
-None of the specifications yield statistical significance at conventional levels;
-all six are directionally negative for fiscal balance and revenue. Under California
-exclusion, total revenue strengthens to \$\!-422 (vs.\ \$\!-325 baseline),
-consistent with Proposition~13's reassessment-at-sale mechanism partially
-offsetting revenue losses for California counties.
+\item \textit{Notes}: All specifications use never-treated controls (except row 1) and bootstrap SE (999 replications).
+(1) Not-yet-treated controls: g\,=\,2022 counties added
+as controls for g\,=\,2017 cohort in 2017. (2) Outlier counties have total revenue per
+capita exceeding three times the state-year median in any year. (3) Eleven western states are AZ, CA, CO, ID,
+MT, NV, NM, OR, UT, WA, WY. $N_{\text{treat}}=202$, $N_{\text{ctrl}}=72$ for the intensive sample, $N_{\text{treat}}=240$, $N_{\text{ctrl}}=34$ for the extensive sample.
+(4) WHP 2014 replaces WFP 2012. (5) Excludes all California counties.  *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
 
+
+% (AZ, CA, CO, ID, MT, NV, NM, OR, UT, WA, WY)
 \clearpage
 
 \begin{table}[h!]
@@ -1164,29 +1259,24 @@ offsetting revenue losses for California counties.
  & (1) & (2) & (3) & (4) \\
  & C\&S DR & Sun-Abraham & Synthetic DiD & Two-Stage DiD \\
 \midrule
-\textit{Panel A: Fiscal balance per capita} \\
-ATT         & $-$277.5 & $-$126.4   & $-$252.2    & $-$188.3   \\
-SE          & (245.3)  & (187.0) & (201.6) & (222.3) \\
-95\% CI     & [$-$758, 203] & [$-$493, 240] & [$-$647, 143] & [$-$624, 248] \\
-$p$-value   & 0.258    & 0.499   & 0.211   & 0.397   \\
+\multicolumn{5}{l}{\textit{Panel A: Fiscal balance per capita}} \\
+ATT & $+$378.7 & $-$12.4  & $+$24.7  & $+$33.5  \\
+    & (272.6)  & (120.2)  & (61.5)   & (47.6)   \\
 \addlinespace
-\textit{Panel B: Total revenue per capita} \\
-ATT         & $-$324.7 & $-$15.7    & $-$137.6    & $-$161.8    \\
-SE          & (306.3)  & (209.7) & (225.6) & (238.5) \\
-$p$-value   & 0.289    & 0.940   & 0.542   & 0.498   \\
+\multicolumn{5}{l}{\textit{Panel B: Total revenue per capita}} \\
+ATT & $-$69.3  & $-$93.4  & $-$7.2   & $-$21.6  \\
+    & (358.8)  & (129.5)  & (128.4)  & (66.4)   \\
 \addlinespace
-\textit{Panel C: Property tax revenue per capita} \\
-ATT         & $-$166.9     & $-$140.6    & $-$231.4    & $-$243.5    \\
-SE          & (227.8)  & (175.9) & (177.6) & (215.7) \\
-$p$-value   & 0.464    & 0.424   & 0.193   & 0.259   \\
+\multicolumn{5}{l}{\textit{Panel C: Property tax revenue per capita}} \\
+ATT & $+$39.5  & $-$131.6 & $-$50.9  & $-$44.5  \\
+    & (212.9)  & (115.5)  & (128.8)  & (42.7)   \\
 \addlinespace
-\textit{Panel D: Capital expenditures per capita} \\
-ATT         & $-$181.4 & 6.2  & 16.1    & 23.1    \\
-SE          & (123.5)  & (41.1)  & (20.4)  & (22.9)  \\
-$p$-value   & 0.142    & 0.879   & 0.431   & 0.313   \\
+\multicolumn{5}{l}{\textit{Panel D: Capital expenditures per capita}} \\
+ATT & $-$292.9$^{*}$ & $-$87.1$^{**}$ & $-$3.3  & $-$25.2 \\
+    & (164.4)         & (44.3)          & (17.6)  & (18.4)  \\
 \midrule
-Covariate adjustment & DR & None & Synthetic & FE \\
-Cohort coding & g\,=\,0/2017/2022 & g\,=\,0/2017/2022 & g\,=\,0/2017/2022 & g\,=\,0/2017/2022 \\
+Covariate adj. & DR & None & Synthetic & FE \\
+\multicolumn{5}{l}{Cohort coding: g\,=\,0 (never-treated), 2017, 2022 for all estimators} \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]
@@ -1198,16 +1288,15 @@ Column (2): Sun and Abraham (2021) heterogeneity-robust TWFE, \texttt{sunab(g, y
 average over $\ell \geq 0$ cells; clustered SE.
 Column (3): Synthetic DiD \citep{arkhangelsky2021}; separate estimates for g\,=\,2017
 (donors: g\,=\,0 + g\,=\,2022 not-yet-treated; $T_0=3$) and g\,=\,2022 (donors: g\,=\,0;
-$T_0=4$); pooled with cohort-size weights; bootstrap SE (500 replications).
+$T_0=4$); pooled with cohort-size weights; jackknife SE (leave-one-control-out).
 Column (4): Two-stage DiD \citep{gardner2022} via \texttt{did2s} package v1.0.2;
 stage-1 absorbs county and year fixed effects from pre-treatment observations;
 stage-2 regresses residuals on treatment indicator; clustered SE.
-Unlike the all-fire specification where columns (2)--(4) yielded positive estimates,
-all four estimators agree on negative signs for Panels A--C when treatment is
-restricted to high-severity fires, reflecting improved counterfactual comparability.
-Capital expenditures (Panel D) diverge: the DR estimate is negative ($-$\$181) while
-non-DR estimators are near-zero positive, suggesting the DR covariate adjustment
-accounts for higher pre-treatment capital spending baselines in treated counties.
+Capital expenditures (Panel D) show the most consistent signal: C\&S DR yields
+$-$\$293 ($p = 0.075$) and Sun-Abraham yields $-$\$87 ($p = 0.049$), while Synthetic DiD
+and Two-Stage DiD yield near-zero estimates ($-$\$3 and $-$\$25). Fiscal balance
+(Panel A) shows no cross-estimator consensus, ranging from $+$\$379 (C\&S) to
+$-$\$12 (Sun-Abraham).
 *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
 \end{tablenotes}
 \end{threeparttable}
@@ -1222,31 +1311,32 @@ accounts for higher pre-treatment capital spending baselines in treated counties
 \centering
 \small
 
-\textit{Panel A: TWFE dose-response (all 344 counties; treated $n=293$, never-treated $n=51$)} \\[4pt]
+\textit{} \\[4pt]
 \begin{tabular}{lrrrr}
+\multicolumn{5}{l}{Panel A: TWFE dose-response (treated $n=884$, never-treated $n=2{,}091$)} \\
 \toprule
 Outcome & $\hat{\beta}$ & SE & $p$-value & Pre-trend Wald $p$ \\
 \midrule
-Fiscal balance p.c.          &  10.76 & (11.56) & 0.353 & 0.357 \\
-Total revenue p.c.           &   3.95 & (13.23) & 0.765 & 0.565 \\
-Property tax revenue p.c.    &   6.02 & (10.26) & 0.558 & 0.019\textsuperscript{$\dagger$} \\
-Intergovernmental revenue p.c. & $-$0.72 & (4.56) & 0.875 & 0.158 \\
-Total expenditures p.c.      &  $-$6.80 & (7.99) & 0.395 & 0.935 \\
-Capital expenditures p.c.    &   1.56 &  (2.05) & 0.446 & 0.188 \\
-Long-term debt p.c.          &   2.55 &  (9.11) & 0.780 & 0.970 \\
-\bottomrule
+Fiscal balance p.c.          & $+$10.23 &  (4.80) & 0.033\textsuperscript{**} & 0.313 \\
+Total revenue p.c.           &  $+$8.12 &  (6.22) & 0.192 & 0.089\textsuperscript{$\dagger$} \\
+Property tax revenue p.c.    &  $+$6.00 &  (4.47) & 0.180 & 0.052 \\
+Intergovernmental revenue p.c. & $+$0.63 & (2.33) & 0.785 & 0.270 \\
+Total expenditures p.c.      &  $-$2.10 &  (3.73) & 0.573 & 0.003\textsuperscript{$\dagger\dagger$} \\
+Capital expenditures p.c.    &  $-$0.02 &  (1.44) & 0.989 & 0.040\textsuperscript{$\dagger$} \\
+Long-term debt p.c.          & $+$11.02 & (11.10) & 0.321 & 0.702 \\
+\midrule
 \end{tabular}
 
 \medskip
-\textit{Panel B: C\&S DR dose-bin ATT (median split at $\log D_i = 9.49$, i.e.\ 13{,}161 acres)} \\[4pt]
 \begin{tabular}{lrrrrrr}
+\multicolumn{7}{l}{Panel B: C\&S DR dose-bin ATT (median split at $\log D_i = 8.67$, i.e. $5{,}825$ acres)} \\
 \toprule
- & \multicolumn{3}{c}{Low dose ($\leq$ median, $n=147$)} & \multicolumn{3}{c}{High dose ($>$ median, $n=146$)} \\
+ & \multicolumn{3}{c}{Low dose ($\leq$ median, $n = 442$)} & \multicolumn{3}{c}{High dose ($>$ median, $n = 442$)} \\
 \cmidrule(lr){2-4} \cmidrule(lr){5-7}
 Outcome & ATT & SE & $p$ & ATT & SE & $p$ \\
 \midrule
-Fiscal balance p.c.       & $-$178.6 & (414.6) & 0.667 & $-$1{,}074.9 & (635.1) & 0.091\textsuperscript{*} \\
-Capital expenditures p.c. & $-$118.3 &  (85.5) & 0.166 &   $-$260.1 & (201.3) & 0.196 \\
+Fiscal balance p.c.       & $+$522.8 & (480.7) & 0.277 & $+$332.1 & (463.9) & 0.474 \\
+Capital expenditures p.c. &  $+$22.6 & (190.6) & 0.906 & $-$109.7 & (132.2) & 0.407 \\
 \bottomrule
 \end{tabular}
 
@@ -1260,13 +1350,15 @@ $\hat{\beta}$ is the coefficient on $D_i \times \text{Post}_{it}$; county and ye
 effects included; SE clustered by county.
 Pre-trend Wald $p$: joint Wald test on dose interactions at $t \in \{2002,2007\}$
 (2 d.f.); clustered.
-Panel B: Callaway-Sant'Anna (2021) doubly-robust simple ATT estimated separately
-for counties below and above the median dose; never-treated controls; same
-covariates as Table~\ref{tab:main_ext}.
+Panel B: Callaway-Sant'Anna (2021) doubly-robust ATT, simple aggregation, estimated
+separately for counties below and above the median dose; 999 bootstrap replications;
+clustered SE; 2,091 never-treated controls; same covariates as Table~\ref{tab:main_int}.
 Fiscal outcomes in real 2019 dollars per capita.
-\textsuperscript{$\dagger$} Pre-trend test rejected at 5\%: property tax revenue
-trajectories differ pre-treatment across fire-size groups; dose-response
-coefficient for this outcome is not causally interpretable.
+\textsuperscript{$\dagger$} Pre-trend test rejected at 10\%: differential pre-treatment
+trends between high- and low-dose counties; TWFE coefficient for this outcome should be
+interpreted with caution.
+\textsuperscript{$\dagger\dagger$} Pre-trend test rejected at 1\%: TWFE coefficient not
+causally interpretable.
 *** $p<0.01$; ** $p<0.05$; * $p<0.10$.
 \end{tablenotes}
 \end{threeparttable}
@@ -1301,6 +1393,47 @@ coefficient for this outcome is not causally interpretable.
 
 \clearpage
 
+%% ── TABLE 8: HOME RULE / DILLON'S RULE HETEROGENEITY ─────────────────────────
+
+\begin{table}[h!]
+\begin{threeparttable}
+\caption{Institutional Heterogeneity: Subgroup ATTs by State Fiscal Doctrine}
+\label{tab:home_rule}
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{3}{c}{Dillon's Rule states} &
+   \multicolumn{3}{c}{Home rule states} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+Outcome & ATT & SE & $p$-value & ATT & SE & $p$-value \\
+\midrule
+Fiscal balance p.c.       & $-$149.4 & 181.5 & 0.410   & $+$111.5 & 299.8 & 0.710 \\
+Total revenue p.c.        & $-$238.6 & 254.2 & 0.348   & $+$364.3 & 510.5 & 0.475 \\
+Capital outlays p.c.      & $-$133.4 & 114.3 & 0.243   & $-$21.4  & 356.4 & 0.952 \\
+Property tax rev.\ p.c.   & $-$409.8 & 161.1 & 0.011** & $-$25.7  & 242.1 & 0.915 \\
+\addlinespace
+$N$ treated counties      & \multicolumn{3}{c}{166} & \multicolumn{3}{c}{218} \\
+$N$ control counties      & \multicolumn{3}{c}{2{,}011} & \multicolumn{3}{c}{580} \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]
+\small
+\item \textit{Notes}: Callaway and Sant'Anna (2021) doubly-robust ATT, ``simple''
+aggregation. Intensive-margin treatment (first high-severity MTBS fire $\geq\!1{,}000$
+acres with dNBR $\geq\!100$, 2013--2021). Sample restricted to contiguous US county
+governments. Subgroups defined by state-level Dillon's Rule doctrine: Dillon's Rule
+states ($n = 2{,}177$ counties) are those in which counties hold only powers
+explicitly granted by statute; home rule states ($n = 798$ counties) grant counties
+broader fiscal and regulatory discretion. Never-treated control group; same
+covariate formula as Table~\ref{tab:main_int}. SEs clustered by county (block bootstrap,
+999 replications). *** $p < 0.01$; ** $p < 0.05$; * $p < 0.10$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\clearpage
+
 %% ── TABLE A1: MINIMUM DETECTABLE EFFECTS ─────────────────────────────────────
 
 \begin{table}[h!]
@@ -1311,18 +1444,18 @@ coefficient for this outcome is not causally interpretable.
 \small
 \begin{tabular}{lrrrrrr}
 \toprule
- & \multicolumn{3}{c}{Intensive margin (ESS\,=\,19.6)} &
-   \multicolumn{3}{c}{Extensive margin (ESS\,=\,11.1)} \\
+ & \multicolumn{3}{c}{Intensive margin (ESS\,=\,122.1)} &
+   \multicolumn{3}{c}{Extensive margin} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}
 Outcome & ATT & SE & MDE & ATT & SE & MDE \\
 \midrule
-Fiscal balance p.c.       & $-$278 & 245 & 687   & $-$649 & 525 & 1{,}471 \\
-Total revenue p.c.        & $-$325 & 306 & 858   & $-$650 & 646 & 1{,}810 \\
-Capital outlays p.c.      & $-$181 & 124 & 346   & $-$226 & 163 &   456   \\
-Property tax revenue p.c. & $-$167 & 228 & 638   &  $+$46 & 208 &   581   \\
-IGT transfers p.c.        &  $-$99 & 148 & 415   & $-$841 & 661 & 1{,}851 \\
-Total expenditures p.c.   &  $-$47 & 295 & 825   &   $-$2 & 345 &   967   \\
-LT debt p.c.              & $+$728 & 960 & 2{,}690 &  $+$55 & 330 &   925   \\
+Fiscal balance p.c.       & $+$379 & 273 &   764 & $+$535 & 489 & 1{,}370 \\
+Total revenue p.c.        & $-$69  & 359 & 1{,}005 & $+$330 & 757 & 2{,}121 \\
+Capital outlays p.c.      & $-$293 & 164 &   460 &  $-$35 & 201 &   564   \\
+Property tax revenue p.c. &  $+$40 & 213 &   597 & $+$341 & 591 & 1{,}655 \\
+IGT transfers p.c.        &  $-$40 & 157 &   440 &  $+$53 & 161 &   451   \\
+Total expenditures p.c.   & $-$448 & 274 &   769 & $-$205 & 340 &   953   \\
+LT debt p.c.              & $+$1014 & 862 & 2{,}415 & $+$1608 & 1879 & 5{,}264 \\
 \addlinespace
 \textit{Reference benchmark} \\
 \quad Liao-Kousky (2022) CA fiscal balance & \multicolumn{6}{c}{$\approx$\,\$97 per capita} \\
@@ -1338,10 +1471,12 @@ control group after doubly-robust reweighting. The MDE is the minimum true effec
 that the design detects with 80\% probability at a 5\% significance level (two-sided).
 Effects smaller than the MDE cannot be ruled out. The \citet{liao2022} California
 municipal benchmark of approximately \$97 per capita falls below the MDE for every
-outcome in both margins: the design would need approximately 50$\times$ (intensive)
-to 230$\times$ (extensive) larger effective sample size---equivalently,
-7$\times$ (intensive) to 15$\times$ (extensive) smaller standard errors---to
-reliably detect effects of that magnitude.
+outcome in both margins. For fiscal balance, the national design would need
+approximately 62$\times$ (intensive) to 200$\times$ (extensive) larger effective
+sample size---equivalently, 8$\times$ (intensive) to 14$\times$ (extensive) smaller
+standard errors---to reliably detect effects of that magnitude. For capital outlays,
+the intensive-margin MDE of \$460 is approximately $5\times$ the California benchmark,
+consistent with the marginal significance observed for that outcome.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

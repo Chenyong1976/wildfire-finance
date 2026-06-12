@@ -5,25 +5,26 @@ Study period: CoG census years 2002, 2007, 2012 (pre-treatment) and 2017, 2022
 (post-treatment). Treatment window: MTBS fires 2013-2021.
 
 Merges:
-  - CoG quinquennial fiscal panel (344 counties; filtered to 2002-2022)
+  - CoG quinquennial fiscal panel (all lower-48 counties; filtered to 2002-2022)
   - MTBS treatment indicators, C&S group variable, pre-fire history
   - WFP/WHP county hazard scores
-  - Population denominators (2000 Census + ACS)
-  - ACS socioeconomic covariates
+  - Population denominators (2000 Census + ACS) — pulled from Census API for all states
+  - ACS socioeconomic covariates (median_hhinc, poverty_rate, uninsurance_rate,
+    share_65plus, pop_density) — all states via Census API
   - RUCC urban-rural classification
   - Smoke buffer exclusion flags
 
 Applies CPI-U deflation (2019 base) and computes per-capita fiscal outcomes.
 
-Population strategy by CoG FY-begin year:
-  2001: 2000 decennial Census (Census API SF1; 1-year gap, effectively exact)
-  2006: ACS 5-yr 2006 from health-project file; UT uses 2009 as proxy
-  2011, 2016: ACS 5-yr from health-project file + UT from API
-  2021: ACS 5-yr 2020 (1-year lag; flagged with pop_year_2021_lag)
+Population strategy by CoG census year (year_cog):
+  2002: 2000 decennial Census (Census API SF1)
+  2007: ACS 5-yr 2009 proxy (ACS 5-yr not available before 2009)
+  2012: ACS 5-yr 2011
+  2017: ACS 5-yr 2016
+  2022: ACS 5-yr 2020 (1-year lag; flagged with pop_year_lag)
 
-ACS covariates (median_hhinc, poverty_rate, uninsurance_rate, pop_density):
-  Health-project ACS covers states 04,06,08,16,30,32,35,41,53,56 (not UT=49).
-  UT is pulled from Census API within this script.
+  Pop panel merges by ["fips","year_cog"] to handle December FY-end states
+  (IN,KY,MN,MO,NH,NJ,NY,ND,OH,PA,SD,WV,WI) whose FY-begin year == year_cog.
 
 Output: data/processed/panel_final.parquet
 """
@@ -32,6 +33,7 @@ from __future__ import annotations
 
 import os
 import time
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -46,7 +48,14 @@ HEALTH_PROC    = PROJECT_ROOT.parent / "wildfire-health" / "data" / "processed"
 
 np.random.seed(42)
 
-WEST_STATES    = {"06", "08", "16", "30", "41", "49", "53", "56"}
+# All lower-48 state FIPS codes (excludes AK=02, HI=15, DC=11, territories)
+LOWER_48 = {
+    "01","04","05","06","08","09","10","12","13",
+    "16","17","18","19","20","21","22","23","24","25","26","27","28","29",
+    "30","31","32","33","34","35","36","37","38","39","40","41","42","44",
+    "45","46","47","48","49","50","51","53","54","55","56",
+}
+
 CENSUS_API_KEY = os.environ.get("CENSUS_API_KEY", "5e9b8c7b6f13e5d5f10b100ebf88eba8c778a442")
 CENSUS_BASE    = "https://api.census.gov/data"
 
@@ -108,78 +117,102 @@ def fetch_decennial_pop(year: int, state_fips: str) -> pd.DataFrame | None:
 
 
 def fetch_acs5_pop_covars(year: int, state_fips: str) -> pd.DataFrame | None:
-    """ACS 5-yr county: population + median HH income + poverty + uninsurance."""
-    vars_needed = [
-        "B01003_001E",   # total population
-        "B19013_001E",   # median household income
-        "B17001_002E",   # poverty count (numerator)
-        "B17001_001E",   # poverty universe (denominator)
-    ]
-    url  = f"{CENSUS_BASE}/{year}/acs/acs5"
-    data = _api_get(url, {"get": ",".join(["NAME"] + vars_needed),
-                          "for": "county:*", "in": f"state:{state_fips}"})
-    if not data or len(data) < 2:
+    """ACS 5-yr county: population, median HH income, poverty, uninsurance, share 65+.
+
+    B27001 (health insurance) is not available in the current format before 2011.
+    For years < 2011, falls back to core demographic variables only; uninsurance_rate=NaN.
+    """
+    _MALE65   = ["B01001_020E","B01001_021E","B01001_022E","B01001_023E","B01001_024E","B01001_025E"]
+    _FEM65    = ["B01001_044E","B01001_045E","B01001_046E","B01001_047E","B01001_048E","B01001_049E"]
+    _MALE_UNI = ["B27001_005E","B27001_008E","B27001_011E","B27001_014E","B27001_017E",
+                 "B27001_020E","B27001_023E","B27001_026E","B27001_029E"]
+    _FEM_UNI  = ["B27001_033E","B27001_036E","B27001_039E","B27001_042E","B27001_045E",
+                 "B27001_048E","B27001_051E","B27001_054E","B27001_057E"]
+
+    core_vars = (
+        ["B01003_001E","B19013_001E","B17001_002E","B17001_001E"]
+        + _MALE65 + _FEM65
+    )
+    ins_vars = ["B27001_001E"] + _MALE_UNI + _FEM_UNI
+
+    # Try full variable list first; fall back to core only if insurance vars fail
+    for var_list in [core_vars + ins_vars, core_vars]:
+        url  = f"{CENSUS_BASE}/{year}/acs/acs5"
+        data = _api_get(url, {"get": ",".join(["NAME"] + var_list),
+                              "for": "county:*", "in": f"state:{state_fips}"})
+        if data and len(data) >= 2:
+            has_insurance = "B27001_001E" in var_list
+            break
+    else:
         return None
+
     df = pd.DataFrame(data[1:], columns=data[0])
     df["fips"]         = df["state"].str.zfill(2) + df["county"].str.zfill(3)
     df["pop"]          = pd.to_numeric(df["B01003_001E"], errors="coerce")
-    df["median_hhinc"] = pd.to_numeric(df["B19013_001E"], errors="coerce") * (CPI_2019 / CPI_U.get(year, CPI_2019))
+    df["median_hhinc"] = (pd.to_numeric(df["B19013_001E"], errors="coerce")
+                          * (CPI_2019 / CPI_U.get(year, CPI_2019)))
     pov_n = pd.to_numeric(df["B17001_002E"], errors="coerce")
     pov_d = pd.to_numeric(df["B17001_001E"], errors="coerce")
     df["poverty_rate"] = pov_n / pov_d.replace(0, np.nan)
-    return df[["fips", "pop", "median_hhinc", "poverty_rate"]]
+
+    age65_n = sum(pd.to_numeric(df[c], errors="coerce").fillna(0) for c in _MALE65 + _FEM65)
+    df["share_65plus"] = age65_n / df["pop"].replace(0, np.nan)
+
+    if has_insurance:
+        unins_n = sum(pd.to_numeric(df[c], errors="coerce").fillna(0) for c in _MALE_UNI + _FEM_UNI)
+        unins_d = pd.to_numeric(df["B27001_001E"], errors="coerce")
+        df["uninsurance_rate"] = unins_n / unins_d.replace(0, np.nan)
+    else:
+        df["uninsurance_rate"] = np.nan   # B27001 not available for this year
+
+    return df[["fips", "pop", "median_hhinc", "poverty_rate", "uninsurance_rate", "share_65plus"]]
 
 
 # ---------------------------------------------------------------------------
 # Population panel construction
 # ---------------------------------------------------------------------------
 
+def _pull_acs_all_states(api_year: int) -> pd.DataFrame:
+    """Pull ACS 5-yr for all lower-48 states; tags rows with the api_year as 'acs_year'."""
+    frames: list[pd.DataFrame] = []
+    for st in sorted(LOWER_48):
+        df = fetch_acs5_pop_covars(api_year, st)
+        if df is not None and not df.empty:
+            df["acs_year"] = api_year
+            frames.append(df)
+        time.sleep(0.15)
+    if not frames:
+        return pd.DataFrame(columns=["fips", "acs_year", "pop", "median_hhinc",
+                                     "poverty_rate", "uninsurance_rate", "share_65plus"])
+    return pd.concat(frames, ignore_index=True)
+
+
 def build_population_panel() -> pd.DataFrame:
     """
-    Construct population for the 5 CoG FY-begin years (2001-2021) and all 8 finance states.
+    Population and ACS covariate panel indexed by year_cog (CoG census year).
+    Merges by ["fips","year_cog"] in main() — avoids the FY-begin year mismatch
+    for December fiscal-year-end states (IN,KY,MN,MO,NH,NJ,NY,ND,OH,PA,SD,WV,WI).
 
     Sources:
-      2001:   2000 decennial Census (Census API SF1; 1-year gap)
-      2006:   ACS 5-yr 2006 from health-project file; UT uses 2009 proxy
-      2011:   ACS 5-yr 2011 from health-project file + UT from API
-      2016:   ACS 5-yr 2016 from health-project file + UT from API
-      2021:   ACS 5-yr 2020 from health-project file + UT from API; 1-yr lag flagged
+      year_cog 2002: 2000 decennial Census
+      year_cog 2007: ACS 5-yr 2009 proxy (earliest available)
+      year_cog 2012: ACS 5-yr 2011
+      year_cog 2017: ACS 5-yr 2016
+      year_cog 2022: ACS 5-yr 2020 (1-year lag; flagged with pop_year_lag=1)
     """
-    # Load existing ACS panel (health project, excludes UT)
-    acs_all = pd.read_parquet(HEALTH_PROC / "acs_covariates.parquet")
-    acs_all = acs_all[acs_all["fips"].str[:2].isin(WEST_STATES)].copy()
+    # Maps CoG census year → ACS API year (None = use 2000 decennial Census)
+    acs_proxy: dict[int, int | None] = {
+        2002: None,
+        2007: 2009,
+        2012: 2011,
+        2017: 2016,
+        2022: 2020,
+    }
 
-    # Pull ACS for UT for years we need.
-    # ACS 5-yr starts in 2009; use 2009 as fallback proxy for 2006 (UT only).
-    UT_ACS_YEARS = [2006, 2011, 2016, 2020]
-    ut_frames: list[pd.DataFrame] = []
-    for yr in UT_ACS_YEARS:
-        api_yr = 2009 if yr == 2006 else yr   # ACS 5-yr 2006 not in API; 2009 is proxy
-        print(f"  Pulling ACS 5-yr {api_yr} for UT (49)" +
-              (" [proxy for 2006]" if yr == 2006 else "") + "...")
-        df = fetch_acs5_pop_covars(api_yr, "49")
-        if df is not None:
-            df["year"] = yr    # label as 2006 so the merge key matches year_cog=2007
-            ut_frames.append(df)
-        time.sleep(0.3)
-
-    if ut_frames:
-        ut_acs = pd.concat(ut_frames, ignore_index=True)
-        # Merge into acs_all — only columns that match
-        for yr in UT_ACS_YEARS:
-            yr_df = ut_acs[ut_acs["year"] == yr][["fips", "pop", "median_hhinc", "poverty_rate"]].copy()
-            yr_df["year"] = yr
-            # Also fill columns that exist in acs_all but not in yr_df
-            for col in ["uninsurance_rate", "share_65plus", "pop_density"]:
-                yr_df[col] = np.nan
-            acs_all = pd.concat([acs_all, yr_df], ignore_index=True)
-    else:
-        print("  WARNING: UT ACS pull failed entirely — UT per-capita values will be NaN")
-
-    # Pull 2000 decennial Census for FY-begin year 2001 (1-year gap; effectively exact).
-    print("  Pulling 2000 decennial Census population...")
+    # --- 2000 decennial Census (for year_cog 2002) ---
+    print("  Pulling 2000 decennial Census (all lower-48)...")
     frames_2000 = []
-    for st in sorted(WEST_STATES):
+    for st in sorted(LOWER_48):
         df = fetch_decennial_pop(2000, st)
         if df is not None:
             frames_2000.append(df)
@@ -188,46 +221,79 @@ def build_population_panel() -> pd.DataFrame:
     if frames_2000:
         dec_df = pd.concat(frames_2000, ignore_index=True)
         pop_2000 = dec_df.set_index("fips")["pop"].to_dict()
+        print(f"    2000 Census: {len(pop_2000):,} counties")
     else:
-        print("  WARNING: 2000 decennial Census API failed — 2001 pop will be NaN")
+        print("  WARNING: 2000 decennial Census API failed — year_cog=2002 pop will be NaN")
 
-    # Get all FIPS in CoG panel (backbone)
+    # --- ACS 5-yr panels ---
+    acs_api_years = [2009, 2011, 2016, 2020]
+    acs_frames: list[pd.DataFrame] = []
+    for api_yr in acs_api_years:
+        print(f"  Pulling ACS 5-yr {api_yr} (all lower-48)...")
+        df = _pull_acs_all_states(api_yr)
+        print(f"    ACS {api_yr}: {len(df):,} county-rows, "
+              f"{df['pop'].notna().sum():,} non-null pop")
+        acs_frames.append(df)
+    acs_all = pd.concat(acs_frames, ignore_index=True) if acs_frames else pd.DataFrame()
+
+    # --- Pop density from Census Gazetteer (ALAND, sq metres → sq km) ---
+    pop_density_lookup: dict[str, float] = {}
+    gaz_path = DATA_RAW / "2020_Gaz_counties_national.txt"
+    if not gaz_path.exists():
+        print("  Downloading 2020 Census Gazetteer for county land area...")
+        gaz_url = ("https://www2.census.gov/geo/docs/maps-data/data/gazetteer"
+                   "/2020_Gazetteer/2020_Gaz_counties_national.zip")
+        gaz_zip = DATA_RAW / "2020_Gaz_counties_national.zip"
+        r = requests.get(gaz_url, timeout=60)
+        gaz_zip.write_bytes(r.content)
+        with zipfile.ZipFile(gaz_zip) as zf:
+            zf.extractall(DATA_RAW)
+    if gaz_path.exists():
+        gaz = pd.read_csv(gaz_path, sep="\t", dtype=str,
+                          usecols=["GEOID", "ALAND_SQMI"])
+        gaz["fips"]      = gaz["GEOID"].str.strip().str.zfill(5)
+        gaz["aland_km2"] = pd.to_numeric(gaz["ALAND_SQMI"], errors="coerce") * 2.58999
+        pop_density_lookup = gaz.set_index("fips")["aland_km2"].to_dict()
+        print(f"    Gazetteer: {len(pop_density_lookup):,} counties with land area")
+
+    # --- CoG panel backbone ---
     cog = pd.read_parquet(DATA_PROCESSED / "cog_census_panel.parquet")
     all_fips = cog["fips"].unique()
 
-    # ACS covariate source year for each FY-begin year
-    acs_map = {2001: 2000, 2006: 2006, 2011: 2011, 2016: 2016, 2021: 2020}
-
     rows = []
     for fips in all_fips:
-        p00 = pop_2000.get(fips, np.nan)
+        p00   = pop_2000.get(fips, np.nan)
+        aland = pop_density_lookup.get(fips, np.nan)
+        acs_f = acs_all[acs_all["fips"] == fips] if not acs_all.empty else pd.DataFrame()
 
-        acs_fips = acs_all[acs_all["fips"] == fips]
+        def _acs_val(api_yr: int | None, col: str) -> float:
+            if api_yr is None or acs_f.empty:
+                return np.nan
+            sub = acs_f[acs_f["acs_year"] == api_yr]
+            if len(sub) == 0 or col not in sub.columns:
+                return np.nan
+            v = sub[col].values[0]
+            return float(v) if not pd.isna(v) else np.nan
 
-        def _acs_val(year: int, col: str) -> float:
-            sub = acs_fips[acs_fips["year"] == year]
-            return sub[col].values[0] if (len(sub) > 0 and col in sub.columns and not sub[col].isna().all()) else np.nan
-
-        pop_by_year = {
-            2001: p00,
-            2006: _acs_val(2006, "pop"),
-            2011: _acs_val(2011, "pop"),
-            2016: _acs_val(2016, "pop"),
-            2021: _acs_val(2020, "pop"),
-        }
-
-        for cog_yr in COG_FY_YEARS:
-            acs_yr = acs_map[cog_yr]
+        for cog_yr in COG_CENSUS_YEARS:
+            api_yr = acs_proxy[cog_yr]
+            pop    = p00 if cog_yr == 2002 else _acs_val(api_yr, "pop")
             rows.append({
                 "fips":             fips,
-                "year":             cog_yr,
-                "pop":              pop_by_year.get(cog_yr, np.nan),
-                "median_hhinc":     _acs_val(acs_yr, "median_hhinc"),
-                "poverty_rate":     _acs_val(acs_yr, "poverty_rate"),
-                "uninsurance_rate": _acs_val(acs_yr, "uninsurance_rate"),
-                "share_65plus":     _acs_val(acs_yr, "share_65plus"),
-                "pop_density":      _acs_val(acs_yr, "pop_density"),
-                "pop_year_2021_lag": int(cog_yr == 2021),
+                "year_cog":         cog_yr,
+                "pop":              pop,
+                "median_hhinc":     _acs_val(api_yr, "median_hhinc"),
+                "poverty_rate":     _acs_val(api_yr, "poverty_rate"),
+                "uninsurance_rate": _acs_val(api_yr, "uninsurance_rate"),
+                "share_65plus":     _acs_val(api_yr, "share_65plus"),
+                "pop_density": (
+                    (pop / aland)
+                    if (not (isinstance(pop, float) and np.isnan(pop))
+                        and not (isinstance(aland, float) and np.isnan(aland))
+                        and aland > 0)
+                    else np.nan
+                ),
+                "pop_year_lag": int(cog_yr == 2022),   # ACS 2020 used for year_cog 2022
             })
 
     return pd.DataFrame(rows)
@@ -270,13 +336,12 @@ def main() -> None:
     cog = cog[cog["year_cog"].isin(COG_CENSUS_YEARS)].copy()
 
     # ------------------------------------------------------------------
-    # Smoke buffer: merge FY-begin year to MTBS year
+    # Smoke buffer: index by year_cog for consistent merging
     # ------------------------------------------------------------------
-    # FY-begin year 2001 → CoG year 2002; smoke fire-year 2001 is pre-treatment (no exclusion needed)
     smoke_cog = []
-    for cog_yr in COG_FY_YEARS:
+    for cog_yr in COG_CENSUS_YEARS:
         s = smoke[smoke["year"] == cog_yr][["fips", "excl_flag"]].copy()
-        s["year"] = cog_yr
+        s["year_cog"] = cog_yr
         smoke_cog.append(s)
     smoke_panel = pd.concat(smoke_cog, ignore_index=True).rename(
         columns={"excl_flag": "smoke_buffer_excl"}
@@ -313,15 +378,50 @@ def main() -> None:
     # Merge WFP/WHP
     panel = panel.merge(whp, on="fips", how="left")
 
-    # Merge smoke buffer
-    panel = panel.merge(smoke_panel, on=["fips", "year"], how="left")
+    # Merge smoke buffer (keyed by year_cog)
+    panel = panel.merge(smoke_panel, on=["fips", "year_cog"], how="left")
     panel["smoke_buffer_excl"] = panel["smoke_buffer_excl"].fillna(0).astype(int)
 
-    # Merge population and ACS covariates
-    panel = panel.merge(pop_panel, on=["fips", "year"], how="left")
+    # Merge population and ACS covariates (keyed by year_cog, not FY-begin year)
+    panel = panel.merge(pop_panel, on=["fips", "year_cog"], how="left")
 
     # Merge RUCC
     panel = panel.merge(rucc, on="fips", how="left")
+
+    # ------------------------------------------------------------------
+    # Home rule / Dillon's Rule
+    # ------------------------------------------------------------------
+    hr_states_path   = DATA_RAW / "home_rule" / "home_rule_states.csv"
+    hr_counties_path = DATA_RAW / "home_rule" / "home_rule_counties.csv"
+
+    if hr_states_path.exists():
+        hr_states = pd.read_csv(hr_states_path, dtype={"state_fips": str})
+        hr_states["state_fips"] = hr_states["state_fips"].str.zfill(2)
+        panel["state_fips"] = panel["fips"].str[:2]
+        panel = panel.merge(
+            hr_states[["state_fips", "dillons_rule_state"]],
+            on="state_fips", how="left"
+        )
+        panel["dillons_rule_state"] = panel["dillons_rule_state"].fillna(0).astype(int)
+        print(f"  dillons_rule_state: {panel['dillons_rule_state'].sum() // len(panel['year_cog'].unique())} counties in Dillon's Rule states")
+    else:
+        print("  WARNING: home_rule_states.csv not found — dillons_rule_state omitted")
+        panel["dillons_rule_state"] = np.nan
+
+    if hr_counties_path.exists():
+        hr_counties = pd.read_csv(hr_counties_path, dtype={"fips": str})
+        hr_counties["fips"] = hr_counties["fips"].str.zfill(5)
+        # Only use counties with confirmed pre-2015 charter (pre2015_valid == True)
+        hr_valid = hr_counties[hr_counties["pre2015_valid"] == True][
+            ["fips", "home_rule_county"]
+        ].drop_duplicates("fips")
+        panel = panel.merge(hr_valid, on="fips", how="left")
+        panel["home_rule_county"] = panel["home_rule_county"].fillna(0).astype(int)
+        n_hr = panel[panel["year_cog"] == 2012]["home_rule_county"].sum()
+        print(f"  home_rule_county: {n_hr} counties with confirmed pre-2015 charter")
+    else:
+        print("  WARNING: home_rule_counties.csv not found — home_rule_county omitted")
+        panel["home_rule_county"] = 0
 
     # ------------------------------------------------------------------
     # CPI-U deflation

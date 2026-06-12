@@ -1,0 +1,25 @@
+Assessment-Cycle Subgroup Analysis
+C&S doubly-robust ATT (intensive margin)
+
+Outcome                     Subgroup       ATT ($)       SE          95% CI    p-val    Sig
+------------------------------------------------------------------------------------------ 
+fiscal_balance_pc           annual           -52.2    304.3  [-648.6,  544.2]    0.864       
+fiscal_balance_pc           multi_year       -75.5    225.6  [-517.7,  366.7]    0.738       
+rev_total_pc                annual           -34.7    214.2  [-454.5,  385.1]    0.871       
+rev_total_pc                multi_year       -25.8    247.4  [-510.7,  459.1]    0.917       
+rev_proptax_pc              annual            -2.7     85.0  [-169.3,  163.9]    0.975       
+rev_proptax_pc              multi_year      -132.1    204.6  [-533.1,  268.9]    0.519       
+exp_capital_pc              annual           -63.8     85.0  [-230.4,  102.8]    0.453       
+exp_capital_pc              multi_year        84.0     99.1  [-110.2,  278.2]    0.397       
+fiscal_balance_pc           annual        -18033.1   8256.2  [-34215.0, -1851.2]    0.029     **
+fiscal_balance_pc           multi_year       206.2    140.9  [ -70.0,  482.4]    0.143       
+rev_total_pc                annual         12631.4   8364.4  [-3762.5, 29025.3]    0.131       
+rev_total_pc                multi_year       158.8    234.5  [-300.8,  618.4]    0.498       
+rev_proptax_pc              annual         -2887.3   2989.6  [-8746.8, 2972.2]    0.334       
+rev_proptax_pc              multi_year        98.2    181.5  [-257.5,  453.9]    0.588       
+exp_capital_pc              annual          4533.1   3496.3  [-2319.5, 11385.7]    0.195       
+exp_capital_pc              multi_year       -37.6     70.2  [-175.2,  100.0]    0.592       
+------------------------------------------------------------------------------------------ 
+Note: *** p<0.01, ** p<0.05, * p<0.10.
+      Annual = CA (FIPS 06), OR (41), WA (53). Multi-year = all other lower-48 states.
+      Never-treated control group; intensive-margin treatment (high-severity fire).

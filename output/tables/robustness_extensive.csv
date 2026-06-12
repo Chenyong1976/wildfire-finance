@@ -1,22 +1,4 @@
 "margin","outcome","spec","att","se","ci_lo","ci_hi","p_value","signif","n_treated","n_ctrl"
-"intensive","fiscal_balance_pc","(0) Baseline",378.7,293.2,-195.9,953.4,0.196,"",386,2634
-"intensive","fiscal_balance_pc","(1) Not-yet-treated",311.8,221.6,-122.5,746.2,0.159,"",386,2634
-"intensive","fiscal_balance_pc","(2) Drop outliers",378.7,268.7,-148,905.4,0.159,"",386,2634
-"intensive","fiscal_balance_pc","(3) Western states only",-1251.6,403.4,-2042.3,-460.9,0.002,"***",202,72
-"intensive","fiscal_balance_pc","(4) WHP 2014 xformla",-216.7,446.9,-1092.6,659.1,0.628,"",386,2634
-"intensive","fiscal_balance_pc","(5) Excl. California",-90.7,183.4,-450.1,268.6,0.621,"",334,2629
-"intensive","rev_total_pc","(0) Baseline",-69.3,312.7,-682.1,543.6,0.825,"",386,2634
-"intensive","rev_total_pc","(1) Not-yet-treated",55.3,246.6,-428.1,538.7,0.823,"",386,2634
-"intensive","rev_total_pc","(2) Drop outliers",-69.3,370.6,-795.6,657.1,0.852,"",386,2634
-"intensive","rev_total_pc","(3) Western states only",-1062.6,444.8,-1934.3,-190.9,0.017,"**",202,72
-"intensive","rev_total_pc","(4) WHP 2014 xformla",-954.4,1017.8,-2949.3,1040.4,0.348,"",386,2634
-"intensive","rev_total_pc","(5) Excl. California",-9.5,226.8,-454,434.9,0.966,"",334,2629
-"intensive","exp_capital_pc","(0) Baseline",-292.9,141.7,-570.7,-15.1,0.039,"**",386,2634
-"intensive","exp_capital_pc","(1) Not-yet-treated",-232.7,111.4,-451.1,-14.2,0.037,"**",386,2634
-"intensive","exp_capital_pc","(2) Drop outliers",-292.9,147.3,-581.7,-4.1,0.047,"**",386,2634
-"intensive","exp_capital_pc","(3) Western states only",185.7,365.5,-530.8,902.1,0.611,"",202,72
-"intensive","exp_capital_pc","(4) WHP 2014 xformla",-435.9,411.1,-1241.7,369.8,0.289,"",386,2634
-"intensive","exp_capital_pc","(5) Excl. California",97.2,103.7,-106,300.3,0.349,"",334,2629
 "extensive","fiscal_balance_pc","(0) Baseline",534.6,460,-366.9,1436.2,0.245,"",888,2132
 "extensive","fiscal_balance_pc","(1) Not-yet-treated",322.1,299.9,-265.7,909.9,0.283,"",888,2132
 "extensive","fiscal_balance_pc","(2) Drop outliers",534.6,474.2,-394.8,1464.1,0.26,"",888,2132

@@ -43,8 +43,13 @@ HEALTH_RAW = PROJECT_ROOT.parent / "wildfire-health" / "data" / "raw"
 
 np.random.seed(42)
 
-# 8-state finance sample: CA CO ID MT OR UT WA WY
-WEST_STATES = {"06", "08", "16", "30", "41", "49", "53", "56"}
+# All lower-48 state FIPS codes (excludes AK=02, HI=15, DC=11, territories)
+LOWER_48 = {
+    "01","04","05","06","08","09","10","12","13",
+    "16","17","18","19","20","21","22","23","24","25","26","27","28","29",
+    "30","31","32","33","34","35","36","37","38","39","40","41","42","44",
+    "45","46","47","48","49","50","51","53","54","55","56",
+}
 
 TARGET_CRS      = "EPSG:5070"
 SMOKE_BUFFER_M  = 100_000   # 100 km baseline
@@ -73,7 +78,7 @@ def load_counties() -> gpd.GeoDataFrame:
             f"County shapefile not found at {tiger_path}. Download from: {TIGER_URL}"
         )
     counties = gpd.read_file(f"zip://{tiger_path}")
-    counties = counties[counties["STATEFP"].isin(WEST_STATES)].copy()
+    counties = counties[counties["STATEFP"].isin(LOWER_48)].copy()
     counties = counties.to_crs(TARGET_CRS)
     counties["fips"] = counties["STATEFP"] + counties["COUNTYFP"]
     counties["county_area"] = counties.geometry.area
@@ -311,7 +316,7 @@ def main() -> None:
     DATA_PROCESSED.mkdir(parents=True, exist_ok=True)
 
     counties = load_counties()
-    print(f"Counties: {len(counties)} ({len(WEST_STATES)} states)")
+    print(f"Counties: {len(counties)} ({len(LOWER_48)} states)")
 
     fires_raw = load_mtbs_perimeters()
     fires     = filter_fires(fires_raw)

@@ -48,21 +48,34 @@ if (!"max_acres_cohort" %in% names(panel))
 if (!"rev_intergovt_pc" %in% names(panel))
   panel$rev_intergovt_pc <- panel$rev_igt_federal_pc + panel$rev_igt_state_pc
 
-## Impute uninsurance_rate and pop_density (29 UT counties have NaN; no group median)
-for (col in c("uninsurance_rate", "pop_density")) {
-  if (any(is.na(panel[[col]]))) {
-    overall_med <- median(panel[[col]], na.rm = TRUE)
-    panel[[col]] <- ifelse(is.na(panel[[col]]), overall_med, panel[[col]])
-  }
-}
+## Impute share_65plus and pop_density using same hierarchical logic as 01_cs_main.R:
+##   state-year median → overall median (uninsurance_rate excluded: B27001 unavailable
+##   in ACS 5-yr 2011 API, so no pre-treatment observation for year_cog <= 2012).
+overall_share65 <- median(panel$share_65plus, na.rm = TRUE)
+overall_popdns  <- median(panel$pop_density,  na.rm = TRUE)
+
+panel <- panel |>
+  group_by(state, year_cog) |>
+  mutate(
+    state_share65 = median(share_65plus, na.rm = TRUE),
+    state_popdns  = median(pop_density,  na.rm = TRUE)
+  ) |>
+  ungroup()
 
 panel <- panel |>
   mutate(
     fips_int        = as.integer(fips),
     g_any           = ifelse(g_any == 0, Inf, g_any),
-    uninsurance_imp = uninsurance_rate,
-    log_pop_dens    = log(pmax(pop_density, 1)),
-    log_hhinc       = log(pmax(median_hhinc, 1)),
+    share_65plus_imp = case_when(
+      !is.na(share_65plus)  ~ share_65plus,
+      !is.na(state_share65) ~ state_share65,
+      TRUE                  ~ overall_share65
+    ),
+    log_pop_dens    = log(case_when(
+      !is.na(pop_density)  ~ pop_density,
+      !is.na(state_popdns) ~ state_popdns,
+      TRUE                 ~ overall_popdns
+    ) + 1),
     log_hhinc       = log(pmax(median_hhinc, 1)),
     log_max_acres   = ifelse(!is.infinite(g_any) & !is.na(max_acres_cohort),
                              log(max_acres_cohort), 0),
@@ -178,7 +191,7 @@ cat("PART B: C&S dose-bin (low vs. high, median split)\n")
 cat(sprintf("%-60s\n", paste(rep("=", 60), collapse="")))
 
 xf <- ~ whp_2012 + pre2013_fire + pre2013_log_acres + rucc_2013 +
-         log_hhinc + poverty_rate + uninsurance_imp + log_pop_dens
+         log_hhinc + poverty_rate + share_65plus_imp + log_pop_dens
 
 treated_sub <- panel[panel$year_cog == 2012 & !is.infinite(panel$g_any), ]
 med_log <- median(log(treated_sub$max_acres_cohort), na.rm = TRUE)
@@ -215,6 +228,9 @@ for (y in c("fiscal_balance_pc", "exp_capital_pc")) {
         control_group  = "nevertreated",
         base_period    = "varying",
         est_method     = "dr",
+        bstrap         = TRUE,
+        biters         = 999,
+        clustervars    = "fips_int",
         print_details  = FALSE
       )
       agg <- aggte(fit, type = "simple")

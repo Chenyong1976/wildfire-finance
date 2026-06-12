@@ -1,0 +1,20 @@
+Review the revised manuscript as a skeptical journal referee and copy editor.
+
+Identify passages that sound generic, repetitive, overstated, or disconnected from the
+specific evidence in the paper. Pay particular attention to:
+- broad claims that are not supported by a citation or result;
+- paragraphs with predictable or formulaic structure;
+- repeated summaries of the same finding;
+- excessive use of abstract nouns;
+- sentences that obscure the economic mechanism;
+- transitions that do not express a real logical connection;
+- causal language that is stronger than the research design supports.
+
+For each issue, show:
+1. The original sentence or passage.
+2. Why it is weak.
+3. A more precise replacement.
+4. Whether the replacement requires author verification.
+
+Do not make stylistic changes merely for the sake of sounding different. Preserve the
+author’s voice and the manuscript’s substantive content.

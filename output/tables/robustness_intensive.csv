@@ -17,21 +17,3 @@
 "intensive","exp_capital_pc","(3) Western states only",185.7,365.5,-530.8,902.1,0.611,"",202,72
 "intensive","exp_capital_pc","(4) WHP 2014 xformla",-435.9,411.1,-1241.7,369.8,0.289,"",386,2634
 "intensive","exp_capital_pc","(5) Excl. California",97.2,103.7,-106,300.3,0.349,"",334,2629
-"extensive","fiscal_balance_pc","(0) Baseline",534.6,460,-366.9,1436.2,0.245,"",888,2132
-"extensive","fiscal_balance_pc","(1) Not-yet-treated",322.1,299.9,-265.7,909.9,0.283,"",888,2132
-"extensive","fiscal_balance_pc","(2) Drop outliers",534.6,474.2,-394.8,1464.1,0.26,"",888,2132
-"extensive","fiscal_balance_pc","(3) Western states only",-1796.6,1020.8,-3797.4,204.2,0.078,"*",240,34
-"extensive","fiscal_balance_pc","(4) WHP 2014 xformla",328.7,292.2,-244.1,901.4,0.261,"",888,2132
-"extensive","fiscal_balance_pc","(5) Excl. California",201,139.2,-71.9,473.9,0.149,"",832,2131
-"extensive","rev_total_pc","(0) Baseline",329.5,767.3,-1174.4,1833.5,0.668,"",888,2132
-"extensive","rev_total_pc","(1) Not-yet-treated",232.7,418.3,-587.1,1052.5,0.578,"",888,2132
-"extensive","rev_total_pc","(2) Drop outliers",329.5,759,-1158,1817.1,0.664,"",888,2132
-"extensive","rev_total_pc","(3) Western states only",-1265.7,1585.8,-4373.7,1842.4,0.425,"",240,34
-"extensive","rev_total_pc","(4) WHP 2014 xformla",340.3,508,-655.3,1336,0.503,"",888,2132
-"extensive","rev_total_pc","(5) Excl. California",145.7,233.9,-312.6,604,0.533,"",832,2131
-"extensive","exp_capital_pc","(0) Baseline",-35.3,206.4,-439.7,369.2,0.864,"",888,2132
-"extensive","exp_capital_pc","(1) Not-yet-treated",-58.9,119.3,-292.8,174.9,0.621,"",888,2132
-"extensive","exp_capital_pc","(2) Drop outliers",-35.3,204.5,-436.1,365.5,0.863,"",888,2132
-"extensive","exp_capital_pc","(3) Western states only",-114,592.4,-1275,1047,0.847,"",240,34
-"extensive","exp_capital_pc","(4) WHP 2014 xformla",-65.5,136.3,-332.6,201.7,0.631,"",888,2132
-"extensive","exp_capital_pc","(5) Excl. California",-44.1,66.5,-174.5,86.3,0.508,"",832,2131

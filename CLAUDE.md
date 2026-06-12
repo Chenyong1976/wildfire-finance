@@ -7,19 +7,21 @@ Inherits all rules from `~/.claude/CLAUDE.md`. Project-specific additions below.
 ## Project Context
 
 **Research question**: Causal effect of wildfire incidence on local government revenues,
-expenditures, and fiscal balance in western US counties.
-**Design**: Callaway & Sant'Anna (2021) staggered DiD with PS-IPW matching on USFS WHP.
+expenditures, and fiscal balance in US counties (lower-48 states).
+**Design**: Callaway & Sant'Anna (2021) staggered DiD with PS-IPW matching on USFS WFP 2012.
 **Estimand**: ATT.
-**Sample**: Quinquennial CoG census panel, 1992–2022. States: CA, OR, WA, ID, MT, WY,
-CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022)
-= 2,408 observations. Complete coverage by design — quinquennial census, no sampling restriction.
+**Sample**: Quinquennial CoG census panel, 2002–2022. All lower-48 states (~3,000 counties
+× 5 census years = ~15,000 observations). Expanded from 8-state western sample in June 2026.
+1992 and 1997 excluded: 1990 Census not available via REST API.
+Pre-treatment periods: 2002, 2007, 2012. Post-treatment periods: 2017, 2022.
 **Treatment**: First qualifying MTBS fire (≥1,000 acres) in 2013–2021.
-  - g=2017 cohort: first fire 2013–2016 (208 counties)
-  - g=2022 cohort: first fire 2017–2021 (85 counties)
-  - g=0 (never treated): 56 counties
-**WFP/WHP**: WFP 2012 primary (predetermined for fires from 2013 onward; finalized before
-2013 fire season). WHP 2014 is robustness only (not predetermined for 2013–2014 fires).
-**Status**: CoG panel, WHP county, MTBS county built. Next: PS-IPW matching, C&S estimation.
+  - g=2017 cohort: first fire 2013–2016; post-treatment at 2017 and 2022
+  - g=2022 cohort: first fire 2017–2021; post-treatment at 2022 only
+  - g=0 (never treated): expanded control pool with national expansion
+**WFP/WHP**: WFP 2012 primary (covers full CONUS; predetermined for fires from 2013 onward).
+  WHP 2014 is robustness only (not predetermined for 2013–2014 fires).
+**Status**: Data pipeline being re-run for national sample (June 2026 expansion).
+  Prior 8-state results archived; national re-estimation in progress.
 
 ---
 
@@ -44,8 +46,9 @@ CO, UT. 344 counties × 7 census years (1992, 1997, 2002, 2007, 2012, 2017, 2022
     2011, 2016, 2021.
   - Montana consolidated city-counties (Deer Lodge 30023, Silver Bow 30093) are absent from
     CoG county government (type=1) records. Treat as unobservable; do not impute.
-  - `WEST_STATES <- c("06","08","16","30","41","49","53","56")`
-    (CA, CO, ID, MT, OR, UT, WA, WY). Use this vector in all R analysis scripts.
+  - `LOWER_48` in Python; use `!(statefp %in% c("02","15","11"))` in R to exclude AK/HI/DC.
+    Sample now covers all lower-48 states. Update any R scripts still referencing the old
+    8-state WEST_STATES vector.
 - **Unit of analysis**: county government only (type code 1 in CoG), not all local
   governments in the county. This matches the FIPS-level treatment assignment.
   Flag if county government fiscal data is unavailable and special district or

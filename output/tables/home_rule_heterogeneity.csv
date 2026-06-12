@@ -1,0 +1,9 @@
+"outcome","subgroup","att","se","ci_lo","ci_hi","p_value","signif","n_trt","n_ctl"
+"fiscal_balance_pc","dillons_rule",-149.4,181.5,-505.1,206.3,0.41,"",166,2011
+"fiscal_balance_pc","home_rule",111.5,299.8,-476.1,699.1,0.71,"",218,580
+"rev_total_pc","dillons_rule",-238.6,254.2,-736.8,259.6,0.348,"",166,2011
+"rev_total_pc","home_rule",364.3,510.5,-636.3,1364.9,0.475,"",218,580
+"exp_capital_pc","dillons_rule",-133.4,114.3,-357.4,90.6,0.243,"",166,2011
+"exp_capital_pc","home_rule",-21.4,356.4,-719.9,677.1,0.952,"",218,580
+"rev_proptax_pc","dillons_rule",-409.8,161.1,-725.6,-94,0.011,"**",166,2011
+"rev_proptax_pc","home_rule",-25.7,242.1,-500.2,448.8,0.915,"",218,580

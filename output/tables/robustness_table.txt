@@ -1,42 +1,81 @@
+
+
+══════ INTENSIVE MARGIN (HIGH-SEVERITY FIRE, N_TREATED~384) ══════
 Robustness Table: C&S Simple ATT across specifications
 Outcomes: fiscal_balance_pc, rev_total_pc, exp_capital_pc
 
-Panel: fiscal_balance_pc
+Outcome: fiscal_balance_pc
 Specification                  ATT ($)       SE          95% CI   p-val    Sig
 ------------------------------------------------------------------------------ 
-(0) Baseline                    -277.5    246.2  [-760.0,  205.1]   0.260       
-(1) Not-yet-treated             -379.4    448.1  [-1257.6,  498.8]   0.397       
-(2) Drop outliers               -277.5    251.4  [-770.1,  215.2]   0.270       
-(3) 6-state (no CO/UT)          -277.5    236.9  [-741.8,  186.9]   0.242       
-(4) WHP 2014 xformla            -262.9    249.4  [-751.8,  225.9]   0.292       
-(5) Excl. California            -208.7    299.0  [-794.8,  377.3]   0.485       
+(0) Baseline                     378.7    293.2  [-195.9,  953.4]   0.196       
+(1) Not-yet-treated              311.8    221.6  [-122.5,  746.2]   0.159       
+(2) Drop outliers                378.7    268.7  [-148.0,  905.4]   0.159       
+(3) Western states only        -1251.6    403.4  [-2042.3, -460.9]   0.002    ***
+(4) WHP 2014 xformla            -216.7    446.9  [-1092.6,  659.1]   0.628       
+(5) Excl. California             -90.7    183.4  [-450.1,  268.6]   0.621       
 ------------------------------------------------------------------------------ 
 
-Panel: rev_total_pc
+Outcome: rev_total_pc
 Specification                  ATT ($)       SE          95% CI   p-val    Sig
 ------------------------------------------------------------------------------ 
-(0) Baseline                    -324.7    315.5  [-943.2,  293.7]   0.303       
-(1) Not-yet-treated             -361.7    441.1  [-1226.1,  502.8]   0.412       
-(2) Drop outliers               -324.7    310.5  [-933.3,  283.8]   0.296       
-(3) 6-state (no CO/UT)          -324.7    322.5  [-956.8,  307.3]   0.314       
-(4) WHP 2014 xformla            -335.5    329.0  [-980.3,  309.3]   0.308       
-(5) Excl. California            -422.3    336.8  [-1082.4,  237.9]   0.210       
+(0) Baseline                     -69.3    312.7  [-682.1,  543.6]   0.825       
+(1) Not-yet-treated               55.3    246.6  [-428.1,  538.7]   0.823       
+(2) Drop outliers                -69.3    370.6  [-795.6,  657.1]   0.852       
+(3) Western states only        -1062.6    444.8  [-1934.3, -190.9]   0.017     **
+(4) WHP 2014 xformla            -954.4   1017.8  [-2949.3, 1040.4]   0.348       
+(5) Excl. California              -9.5    226.8  [-454.0,  434.9]   0.966       
 ------------------------------------------------------------------------------ 
 
-Panel: exp_capital_pc
+Outcome: exp_capital_pc
 Specification                  ATT ($)       SE          95% CI   p-val    Sig
 ------------------------------------------------------------------------------ 
-(0) Baseline                    -181.4    118.8  [-414.2,   51.5]   0.127       
-(1) Not-yet-treated             -118.5     73.3  [-262.1,   25.1]   0.106       
-(2) Drop outliers               -181.4    116.9  [-410.4,   47.7]   0.121       
-(3) 6-state (no CO/UT)          -181.4    126.1  [-428.6,   65.9]   0.151       
-(4) WHP 2014 xformla            -154.9     98.1  [-347.2,   37.4]   0.114       
-(5) Excl. California             -93.2     82.7  [-255.3,   69.0]   0.260       
+(0) Baseline                    -292.9    141.7  [-570.7,  -15.1]   0.039     **
+(1) Not-yet-treated             -232.7    111.4  [-451.1,  -14.2]   0.037     **
+(2) Drop outliers               -292.9    147.3  [-581.7,   -4.1]   0.047     **
+(3) Western states only          185.7    365.5  [-530.8,  902.1]   0.611       
+(4) WHP 2014 xformla            -435.9    411.1  [-1241.7,  369.8]   0.289       
+(5) Excl. California              97.2    103.7  [-106.0,  300.3]   0.349       
+------------------------------------------------------------------------------ 
+
+
+
+══════ EXTENSIVE MARGIN (ANY QUALIFYING FIRE, N_TREATED~884) ══════
+Robustness Table: C&S Simple ATT across specifications
+Outcomes: fiscal_balance_pc, rev_total_pc, exp_capital_pc
+
+Outcome: fiscal_balance_pc
+Specification                  ATT ($)       SE          95% CI   p-val    Sig
+------------------------------------------------------------------------------ 
+(0) Baseline                     534.6    460.0  [-366.9, 1436.2]   0.245       
+(1) Not-yet-treated              322.1    299.9  [-265.7,  909.9]   0.283       
+(2) Drop outliers                534.6    474.2  [-394.8, 1464.1]   0.260       
+(3) Western states only        -1796.6   1020.8  [-3797.4,  204.2]   0.078      *
+(4) WHP 2014 xformla             328.7    292.2  [-244.1,  901.4]   0.261       
+(5) Excl. California             201.0    139.2  [ -71.9,  473.9]   0.149       
+------------------------------------------------------------------------------ 
+
+Outcome: rev_total_pc
+Specification                  ATT ($)       SE          95% CI   p-val    Sig
+------------------------------------------------------------------------------ 
+(0) Baseline                     329.5    767.3  [-1174.4, 1833.5]   0.668       
+(1) Not-yet-treated              232.7    418.3  [-587.1, 1052.5]   0.578       
+(2) Drop outliers                329.5    759.0  [-1158.0, 1817.1]   0.664       
+(3) Western states only        -1265.7   1585.8  [-4373.7, 1842.4]   0.425       
+(4) WHP 2014 xformla             340.3    508.0  [-655.3, 1336.0]   0.503       
+(5) Excl. California             145.7    233.9  [-312.6,  604.0]   0.533       
+------------------------------------------------------------------------------ 
+
+Outcome: exp_capital_pc
+Specification                  ATT ($)       SE          95% CI   p-val    Sig
+------------------------------------------------------------------------------ 
+(0) Baseline                     -35.3    206.4  [-439.7,  369.2]   0.864       
+(1) Not-yet-treated              -58.9    119.3  [-292.8,  174.9]   0.621       
+(2) Drop outliers                -35.3    204.5  [-436.1,  365.5]   0.863       
+(3) Western states only         -114.0    592.4  [-1275.0, 1047.0]   0.847       
+(4) WHP 2014 xformla             -65.5    136.3  [-332.6,  201.7]   0.631       
+(5) Excl. California             -44.1     66.5  [-174.5,   86.3]   0.508       
 ------------------------------------------------------------------------------ 
 
 Note: DR estimator, bootstrap SE (n=999). *** p<0.01 ** p<0.05 * p<0.10
-Smoke buffer (100 km) not applied as sample restriction: 40/51
-never-treated counties are within 100 km of a fire perimeter in
-post-treatment years. For fiscal outcomes, 100 km smoke contamination
-does not operate through the fiscal mechanism (property damage is
-geographically localised). Documented as a limitation.
+National sample (lower-48). Smoke buffer (100 km) not applied: fiscal
+transmission (property assessment, debt) is geographically localised.

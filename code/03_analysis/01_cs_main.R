@@ -5,23 +5,24 @@
 ##   id:      fips (county)
 ##   time:    year_cog  (2002, 2007, 2012, 2017, 2022)
 ##   group:   g         (2017 = fires 2013-2016; 2022 = fires 2017-2021; 0 = never)
-##   control: never-treated only (g = 0, n = 51)
+##   control: never-treated only (g = 0; national sample ~2,634 counties)
 ##   method:  doubly-robust (est_method = "dr", C&S default)
 ##   base:    universal (2012 = last pre-treatment period for all cohorts)
 ##
 ## Outcomes (all per-capita, nominal 2019 $):
 ##   rev_total_pc       total general revenues
 ##   rev_proptax_pc     property tax revenues
-##   rev_intergovt_pc   intergovernmental revenues (federal + state)   ← renamed
+##   rev_intergovt_pc   intergovernmental revenues (federal + state)
 ##   exp_total_pc       total general expenditures
 ##   exp_capital_pc     capital outlays
 ##   fiscal_balance_pc  revenues minus expenditures
 ##   debt_lt_pc         long-term debt outstanding
 ##
-## Covariates (xformla): pre-treatment, time-invariant (measured 2012 or earlier)
+## Covariates (xformla): pre-treatment, time-invariant (measured at 2012 baseline)
 ##   whp_2012, pre2013_fire, pre2013_log_acres, rucc_2013,
-##   I(log(median_hhinc)), poverty_rate, uninsurance_imp, log_pop_dens
-##   (last two imputed for 29 UT counties using state-year median)
+##   log_hhinc, poverty_rate, share_65plus, log_pop_dens
+##   Note: uninsurance_rate excluded (B27001 not in ACS 5-yr 2011 API;
+##         unavailable for year_cog ≤ 2012).
 ##
 ## Outputs:
 ##   data/processed/cs_att_gt_<outcome>.rds   raw att_gt objects
@@ -54,25 +55,27 @@ if (!"rev_intergovt_pc" %in% names(panel) &&
   panel$rev_intergovt_pc <- panel$rev_igt_federal_pc + panel$rev_igt_state_pc
 }
 
-## Impute uninsurance and pop_density for UT (29 counties, all NaN).
-## State-year median is undefined for UT (all NaN) → fall back to overall sample median.
-overall_uninsurance <- median(panel$uninsurance_rate, na.rm = TRUE)
-overall_pop_density <- median(panel$pop_density,      na.rm = TRUE)
+## Impute share_65plus and pop_density for any NaN observations.
+## share_65plus is NaN for year_cog=2002 (2000 decennial Census proxy has no ACS variables).
+## pop_density is NaN for at most 1 county (missing Gazetteer land area).
+## Use state-year median with overall-sample fallback.
+overall_share65    <- median(panel$share_65plus, na.rm = TRUE)
+overall_pop_density <- median(panel$pop_density,  na.rm = TRUE)
 panel <- panel |>
   group_by(state, year_cog) |>
   mutate(
-    state_unins  = median(uninsurance_rate, na.rm = TRUE),
-    state_popdns = median(pop_density,      na.rm = TRUE)
+    state_share65  = median(share_65plus, na.rm = TRUE),
+    state_popdns   = median(pop_density,  na.rm = TRUE)
   ) |>
   ungroup() |>
   mutate(
-    uninsurance_imp = case_when(
-      !is.na(uninsurance_rate) ~ uninsurance_rate,
-      !is.na(state_unins)      ~ state_unins,
-      TRUE                     ~ overall_uninsurance
+    share_65plus_imp = case_when(
+      !is.na(share_65plus)   ~ share_65plus,
+      !is.na(state_share65)  ~ state_share65,
+      TRUE                   ~ overall_share65
     ),
     log_pop_dens = log(case_when(
-      !is.na(pop_density) ~ pop_density,
+      !is.na(pop_density)  ~ pop_density,
       !is.na(state_popdns) ~ state_popdns,
       TRUE                 ~ overall_pop_density
     ) + 1)
@@ -84,7 +87,7 @@ panel <- panel |>
     log_hhinc        = log(pmax(median_hhinc, 1)),
     log_rev_total_pc = log(pmax(rev_total_pc, 1)),
     log_proptax_pc   = log(pmax(rev_proptax_pc, 1)),
-    log_debt_lt_pc   = log(debt_lt_pc + 1)
+    log_debt_lt_pc   = log(pmax(debt_lt_pc, 0) + 1)
   )
 
 ## did v2.x requires g=Inf for never-treated (g=0 is not recognised)
@@ -113,7 +116,7 @@ outcomes <- c(
 ## ── Covariate formula ─────────────────────────────────────────────────────────
 
 xf <- ~ whp_2012 + pre2013_fire + pre2013_log_acres + rucc_2013 +
-         log_hhinc + poverty_rate + uninsurance_imp + log_pop_dens
+         log_hhinc + poverty_rate + share_65plus_imp + log_pop_dens
 
 ## ── Run att_gt for each outcome ──────────────────────────────────────────────
 

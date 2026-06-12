@@ -34,7 +34,13 @@ HEALTH_RAW     = PROJECT_ROOT.parent / "wildfire-health" / "data" / "raw"
 
 np.random.seed(42)
 
-WEST_STATES = {"06", "08", "16", "30", "41", "49", "53", "56"}
+# All lower-48 state FIPS codes (excludes AK=02, HI=15, DC=11, territories)
+LOWER_48 = {
+    "01","04","05","06","08","09","10","12","13",
+    "16","17","18","19","20","21","22","23","24","25","26","27","28","29",
+    "30","31","32","33","34","35","36","37","38","39","40","41","42","44",
+    "45","46","47","48","49","50","51","53","54","55","56",
+}
 TARGET_CRS  = "EPSG:5070"
 TIGER_URL   = "https://www2.census.gov/geo/tiger/TIGER2020/COUNTY/tl_2020_us_county.zip"
 
@@ -56,7 +62,7 @@ def load_county_boundaries() -> gpd.GeoDataFrame:
     if not tiger_path.exists():
         raise FileNotFoundError(f"County shapefile not found: {tiger_path}. Download from: {TIGER_URL}")
     counties = gpd.read_file(f"zip://{tiger_path}")
-    counties = counties[counties["STATEFP"].isin(WEST_STATES)].copy()
+    counties = counties[counties["STATEFP"].isin(LOWER_48)].copy()
     counties = counties.to_crs(TARGET_CRS)
     counties["fips"] = counties["STATEFP"] + counties["COUNTYFP"]
     return counties[["fips", "geometry"]].reset_index(drop=True)

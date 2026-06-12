@@ -1,0 +1,48 @@
+Act as a careful academic editor for an applied-economics manuscript. 
+
+A writing sample authored by me is in:
+C:\Users\chenyon\research\wildfire-finance\paper\MyWritingSample.pdf
+
+Your goal is to improve clarity, precision, logical flow, and readability while preserving
+my substantive arguments and my authorial voice. Do not optimize the text for any
+AI-detection tool. Do not attempt to disguise authorship. Do not add unsupported claims,
+invent citations, fabricate interpretations, or change numerical results.
+Do not mimic the style specific to the journal of the writing sample.
+
+First, read the manuscript and my writing sample. Create a short style profile describing:
+1. My typical sentence length and paragraph structure.
+2. How I present empirical results.
+3. How I use transitions and topic sentences.
+4. My preferred level of formality.
+5. Recurrent weaknesses in the current manuscript.
+
+Then revise the manuscript section by section.
+
+Editing rules:
+- Preserve the economic meaning, empirical specifications, estimates, standard errors,
+p-values, sample definitions, and citations.
+- Use direct and precise academic prose suitable for an applied-economics journal.
+- Remove generic introductory statements, inflated claims, repetitive conclusions, and
+unnecessary restatement of results.
+- Avoid formulaic transitions such as “Moreover,” “Furthermore,” and “It is important to
+note that” unless they are genuinely useful.
+- Prefer specific descriptions over vague terms such as “significant impact,” “complex
+dynamics,” or “various factors.”
+- Distinguish clearly among statistical significance, economic magnitude, identification
+assumptions, robustness evidence, and limitations.
+- Vary sentence structure only when it improves readability. Do not force artificial
+variation.
+- Preserve technical terms where they are standard in the literature.
+- Flag any sentence whose factual basis, citation, interpretation, or causal wording
+requires my review.
+- Do not rewrite quoted material.
+- Do not alter LaTeX equations, table labels, figure labels, cross-references, or citation
+keys unless necessary to fix an error.
+
+For each revised section, provide:
+1. The revised text.
+2. A concise change log explaining the major edits.
+3. A list of statements that require author verification.
+4. Any passages that remain unclear because additional substantive input is needed.
+
+Work sequentially. Begin with the abstract and introduction only.

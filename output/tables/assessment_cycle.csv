@@ -1,0 +1,17 @@
+"margin","outcome","subgroup","att","se","ci_lo","ci_hi","p_value","signif","n_trt","n_ctl"
+"intensive","fiscal_balance_pc","annual",-52.2,304.3,-648.6,544.2,0.864,"",102,30
+"intensive","fiscal_balance_pc","multi_year",-75.5,225.6,-517.7,366.7,0.738,"",282,2561
+"intensive","rev_total_pc","annual",-34.7,214.2,-454.5,385.1,0.871,"",102,30
+"intensive","rev_total_pc","multi_year",-25.8,247.4,-510.7,459.1,0.917,"",282,2561
+"intensive","rev_proptax_pc","annual",-2.7,85,-169.3,163.9,0.975,"",102,30
+"intensive","rev_proptax_pc","multi_year",-132.1,204.6,-533.1,268.9,0.519,"",282,2561
+"intensive","exp_capital_pc","annual",-63.8,85,-230.4,102.8,0.453,"",102,30
+"intensive","exp_capital_pc","multi_year",84,99.1,-110.2,278.2,0.397,"",282,2561
+"extensive","fiscal_balance_pc","annual",-18033.1,8256.2,-34215,-1851.2,0.029,"**",111,21
+"extensive","fiscal_balance_pc","multi_year",206.2,140.9,-70,482.4,0.143,"",773,2070
+"extensive","rev_total_pc","annual",12631.4,8364.4,-3762.5,29025.3,0.131,"",111,21
+"extensive","rev_total_pc","multi_year",158.8,234.5,-300.8,618.4,0.498,"",773,2070
+"extensive","rev_proptax_pc","annual",-2887.3,2989.6,-8746.8,2972.2,0.334,"",111,21
+"extensive","rev_proptax_pc","multi_year",98.2,181.5,-257.5,453.9,0.588,"",773,2070
+"extensive","exp_capital_pc","annual",4533.1,3496.3,-2319.5,11385.7,0.195,"",111,21
+"extensive","exp_capital_pc","multi_year",-37.6,70.2,-175.2,100,0.592,"",773,2070
